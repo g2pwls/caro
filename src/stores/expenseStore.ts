@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { getExpenses, createExpense, updateExpense as updateExpenseApi, getExpenseCategories, getExpenseSummary } from '@/services/expenseService';
 import type { Expense, ExpenseCategory, CreateExpenseRequest, UpdateExpenseRequest, ExpenseCategoryItem, ExpenseSummary } from '@/types/expense';
+import { getErrorMessage } from '@/utils/error';
 
 type ExpenseState = {
   expenses: Expense[];
@@ -113,7 +114,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         isLoading: false,
       });
     } catch (e) {
-      const message = e instanceof Error ? e.message : '지출 내역을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '지출 내역을 불러오는데 실패했습니다.');
       set({ error: message, isLoading: false });
     }
   },
@@ -140,7 +141,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
         isLoadingMore: false,
       }));
     } catch (e) {
-      const message = e instanceof Error ? e.message : '추가 지출 내역을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '추가 지출 내역을 불러오는데 실패했습니다.');
       set({ error: message, isLoadingMore: false });
     }
   },
@@ -152,14 +153,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       set({ isCreating: false });
       return true;
     } catch (e: unknown) {
-      let message = '지출 내역 추가에 실패했습니다.';
-      // axios 에러인 경우 서버 응답 메시지 추출
-      if (e && typeof e === 'object' && 'response' in e) {
-        const axiosError = e as { response?: { data?: { message?: string } } };
-        message = axiosError.response?.data?.message || message;
-      } else if (e instanceof Error) {
-        message = e.message;
-      }
+      const message = getErrorMessage(e, '지출 내역 추가에 실패했습니다.');
       console.error('createExpense error:', e);
       set({ createError: message, isCreating: false });
       return false;
@@ -173,13 +167,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       set({ isUpdating: false });
       return true;
     } catch (e: unknown) {
-      let message = '지출 내역 수정에 실패했습니다.';
-      if (e && typeof e === 'object' && 'response' in e) {
-        const axiosError = e as { response?: { data?: { message?: string } } };
-        message = axiosError.response?.data?.message || message;
-      } else if (e instanceof Error) {
-        message = e.message;
-      }
+      const message = getErrorMessage(e, '지출 내역 수정에 실패했습니다.');
       console.error('updateExpense error:', e);
       set({ updateError: message, isUpdating: false });
       return false;
@@ -192,7 +180,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       const categories = await getExpenseCategories({ accessToken });
       set({ categories, isCategoriesLoading: false });
     } catch (e) {
-      const message = e instanceof Error ? e.message : '카테고리 목록을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '카테고리 목록을 불러오는데 실패했습니다.');
       set({ categoriesError: message, isCategoriesLoading: false });
     }
   },
@@ -206,7 +194,7 @@ export const useExpenseStore = create<ExpenseState>((set, get) => ({
       });
       set({ summary, isSummaryLoading: false });
     } catch (e) {
-      const message = e instanceof Error ? e.message : '지출 요약을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '지출 요약을 불러오는데 실패했습니다.');
       set({ summaryError: message, isSummaryLoading: false });
     }
   },

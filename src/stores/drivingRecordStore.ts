@@ -2,6 +2,7 @@ import { create } from 'zustand';
 
 import { getDrivingRecords, getDrivingSummary } from '@/services/drivingRecordService';
 import type { DrivingRecord, DrivingSummary } from '@/types/drivingRecord';
+import { getErrorMessage } from '@/utils/error';
 
 type DrivingRecordState = {
   records: DrivingRecord[];
@@ -57,7 +58,7 @@ export const useDrivingRecordStore = create<DrivingRecordState>((set, get) => ({
         isLoading: false,
       });
     } catch (e) {
-      const message = e instanceof Error ? e.message : '운행 기록을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '운행 기록을 불러오는데 실패했습니다.');
       set({ error: message, isLoading: false });
     }
   },
@@ -82,7 +83,7 @@ export const useDrivingRecordStore = create<DrivingRecordState>((set, get) => ({
         isLoadingMore: false,
       }));
     } catch (e) {
-      const message = e instanceof Error ? e.message : '추가 기록을 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '추가 기록을 불러오는데 실패했습니다.');
       set({ error: message, isLoadingMore: false });
     }
   },
@@ -93,7 +94,7 @@ export const useDrivingRecordStore = create<DrivingRecordState>((set, get) => ({
       const summary = await getDrivingSummary({ accessToken });
       set({ summary, isSummaryLoading: false });
     } catch (e) {
-      const message = e instanceof Error ? e.message : '운행 요약 정보를 불러오는데 실패했습니다.';
+      const message = getErrorMessage(e, '운행 요약 정보를 불러오는데 실패했습니다.');
       set({ summaryError: message, isSummaryLoading: false });
     }
   },

@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { fetchProfile, updateProfile as updateProfileApi } from '@/services/profileService';
 import type { UpdateProfileRequest } from '@/services/profileService';
 import type { ProfileData, PrimaryCar } from '@/types/profile';
+import { getErrorMessage } from '@/utils/error';
 
 type ProfileState = {
   name: string;
@@ -34,7 +35,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
     } catch (e) {
       set({
         isLoading: false,
-        error: e instanceof Error ? e.message : '프로필을 불러오는데 실패했습니다.',
+        error: getErrorMessage(e, '프로필을 불러오는데 실패했습니다.'),
       });
     }
   },
@@ -51,7 +52,7 @@ export const useProfileStore = create<ProfileState>((set) => ({
     } catch (e) {
       set({
         isLoading: false,
-        error: e instanceof Error ? e.message : '프로필 수정에 실패했습니다.',
+        error: getErrorMessage(e, '프로필 수정에 실패했습니다.'),
       });
       throw e;
     }

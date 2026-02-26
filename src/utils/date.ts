@@ -16,6 +16,20 @@ export function toDotYmd(year: number, month: number, day: number): string {
   return `${year}.${pad2(month)}.${pad2(day)}`;
 }
 
+export function formatYearMonthKorean(year: number, month: number): string {
+  return `${year}년 ${month}월`;
+}
+
+export function formatYearMonthKoreanFromYm(yearMonth: string): string {
+  const [year, month] = yearMonth.split('-');
+  return formatYearMonthKorean(Number(year), Number(month));
+}
+
+export function formatMonthKoreanFromYm(yearMonth: string): string {
+  const [, month] = yearMonth.split('-');
+  return `${Number(month)}월`;
+}
+
 export function formatDateOnly(isoDate: string): string {
   return isoDate.slice(0, 10);
 }

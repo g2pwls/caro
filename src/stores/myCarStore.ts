@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import { fetchMyCars } from '@/services/vehicleService';
 import type { PrimaryCar } from '@/types/profile';
+import { getErrorMessage } from '@/utils/error';
 
 type MyCarState = {
   cars: PrimaryCar[];
@@ -22,7 +23,7 @@ export const useMyCarStore = create<MyCarState>((set) => ({
     } catch (e) {
       set({
         isLoading: false,
-        error: e instanceof Error ? e.message : '차량 목록을 불러오는데 실패했습니다.',
+        error: getErrorMessage(e, '차량 목록을 불러오는데 실패했습니다.'),
       });
     }
   },

@@ -12,6 +12,7 @@ import { CarButton } from '@/components/common/Button/CarButton';
 import { MainButton } from '@/components/common/Button/MainButton';
 import FormStepLayout from '@/components/common/Layout/FormStepLayout';
 import { useSignupDraftStore } from '@/stores/signupDraftStore';
+import { getErrorMessage } from '@/utils/error';
 
 export default function VehicleBrandScreen() {
   const router = useRouter();
@@ -34,8 +35,7 @@ export default function VehicleBrandScreen() {
       })
       .catch((e: unknown) => {
         if (!mounted) return;
-        const message =
-          e instanceof Error ? e.message : '차량 제조사 목록을 불러오지 못했어요.';
+        const message = getErrorMessage(e, '차량 제조사 목록을 불러오지 못했어요.');
         setErrorMessage(message);
       })
       .finally(() => {

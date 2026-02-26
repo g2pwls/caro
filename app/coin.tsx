@@ -31,7 +31,12 @@ import { useMyCarStore } from '@/stores/myCarStore';
 import type { Expense, ExpenseCategory } from '@/types/expense';
 import type { PrimaryCar } from '@/types/profile';
 import { getTabRoute } from '@/utils/navigation';
-import { toDotYmd, toYearMonth, toYmd } from '@/utils/date';
+import {
+  formatYearMonthKorean,
+  toDotYmd,
+  toYearMonth,
+  toYmd,
+} from '@/utils/date';
 
 import { performOcr } from '@/services/ocrService';
 
@@ -545,7 +550,7 @@ export default function CoinScreen() {
   }, [summary]);
 
   const calendarHeaderLabel = useMemo(() => {
-    return `${currentYear}년 ${currentMonthIndex + 1}월`;
+    return formatYearMonthKorean(currentYear, currentMonthIndex + 1);
   }, [currentMonthIndex, currentYear]);
 
   const goPrevMonth = () => {

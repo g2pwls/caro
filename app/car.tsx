@@ -8,7 +8,14 @@ import { MainButton } from '@/components/common/Button/MainButton';
 import { useAuthStore } from '@/stores/authStore';
 import { useDrivingRecordStore } from '@/stores/drivingRecordStore';
 import type { DrivingRecord } from '@/types/drivingRecord';
-import { formatDateWithDay, formatTimeHHMM, toYearMonth } from '@/utils/date';
+import {
+  formatDateWithDay,
+  formatMonthKoreanFromYm,
+  formatTimeHHMM,
+  formatYearMonthKorean,
+  formatYearMonthKoreanFromYm,
+  toYearMonth,
+} from '@/utils/date';
 import { getTabRoute } from '@/utils/navigation';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
@@ -424,7 +431,9 @@ export default function CarScreen() {
                     color: colors.coolNeutral[90],
                   }}
                 >
-                  {yearMonth ? `${yearMonth.split('-')[0]}년 ${parseInt(yearMonth.split('-')[1], 10)}월` : `${currentYear}년 ${currentMonth}월`}
+                  {yearMonth
+                    ? formatYearMonthKoreanFromYm(yearMonth)
+                    : formatYearMonthKorean(currentYear, currentMonth)}
                 </Text>
                 <Text
                   style={{
@@ -468,7 +477,7 @@ export default function CarScreen() {
                   }}
                 >
                   {yearMonth
-                    ? `${parseInt(yearMonth.split('-')[1], 10)}월은 아직\n운행기록이 없어요`
+                    ? `${formatMonthKoreanFromYm(yearMonth)}은 아직\n운행기록이 없어요`
                     : '아직 운행 기록이 없습니다.'}
                 </Text>
                 {yearMonth && (

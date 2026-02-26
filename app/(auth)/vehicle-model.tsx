@@ -13,6 +13,7 @@ import FormStepLayout from '@/components/common/Layout/FormStepLayout';
 import { getVehicleModels } from '@/services/vehicleService';
 import type { VehicleModel } from '@/types/vehicle';
 import { useSignupDraftStore } from '@/stores/signupDraftStore';
+import { getErrorMessage } from '@/utils/error';
 
 function formatYears(startYear: number, endYear: number) {
   if (!startYear && !endYear) return '';
@@ -48,8 +49,7 @@ export default function VehicleModelScreen() {
         const data = await getVehicleModels({ brandId });
         setModels(data);
       } catch (e) {
-        const message =
-          e instanceof Error ? e.message : '차종 목록을 불러오지 못했어요.';
+        const message = getErrorMessage(e, '차종 목록을 불러오지 못했어요.');
         setResultMessage(message);
       } finally {
         setIsSearching(false);
@@ -84,8 +84,7 @@ export default function VehicleModelScreen() {
         setResultMessage('일치하는 차량이 없어요.\n다른 차량명을 입력해 주세요.');
       }
     } catch (e: unknown) {
-      const message =
-        e instanceof Error ? e.message : '차종 목록을 불러오지 못했어요.';
+      const message = getErrorMessage(e, '차종 목록을 불러오지 못했어요.');
       setResultMessage(message);
     } finally {
       setIsSearching(false);

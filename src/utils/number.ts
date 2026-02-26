@@ -1,4 +1,6 @@
 // utils/number.ts
+export const onlyDigits = (value: string) => value.replace(/[^\d]/g, '');
+
 export const formatNumberWithComma = (value?: string | number) => {
   if (value === undefined || value === null) return '';
   if (typeof value === 'string' && value.trim() === '') return '';

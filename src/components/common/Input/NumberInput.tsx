@@ -7,7 +7,7 @@ import {
 } from 'react-native';
 import { colors, typography } from '@/theme';
 import XIcon from '@/assets/icons/x_icon.svg';
-import { formatNumberWithComma } from '@/utils/number';
+import { formatNumberWithComma, onlyDigits } from '@/utils/number';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
 
 interface CustomNumberInputProps extends TextInputProps {
@@ -75,8 +75,7 @@ const TextInput = ({
   };
 
   const handleChangeText = (text: string) => {
-    const digitsOnly = text.replace(/[^\d]/g, '');
-    onChangeText?.(digitsOnly);
+    onChangeText?.(onlyDigits(text));
   };
 
   const handleClear = () => {

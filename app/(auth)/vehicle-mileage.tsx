@@ -13,11 +13,8 @@ import NumberInput from '@/components/common/Input/NumberInput';
 import { MainButton } from '@/components/common/Button/MainButton';
 import { SecondaryButton } from '@/components/common/Button/SecondaryButton';
 import { useSignupDraftStore } from '@/stores/signupDraftStore';
+import { onlyDigits } from '@/utils/number';
 const DEFAULT_MILEAGE = 10_000;
-
-function onlyDigits(value: string) {
-  return value.replace(/[^\d]/g, '');
-}
 
 export default function VehicleMileageScreen() {
   const router = useRouter();
