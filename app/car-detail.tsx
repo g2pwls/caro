@@ -380,7 +380,7 @@ export default function CarDetailScreen() {
                 <Text
                   style={{
                     fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.captionMedium,
+                    ...typography.styles.body2Medium,
                     color: colors.coolNeutral[60],
                   }}
                 >
@@ -392,7 +392,7 @@ export default function CarDetailScreen() {
                   style={{
                     flex: 1,
                     fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.captionMedium,
+                    ...typography.styles.body3Medium,
                     color: colors.coolNeutral[40],
                   }}
                 >
@@ -408,7 +408,7 @@ export default function CarDetailScreen() {
                 <Text
                   style={{
                     fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.captionMedium,
+                    ...typography.styles.body2Medium,
                     color: colors.coolNeutral[60],
                   }}
                 >
@@ -420,7 +420,7 @@ export default function CarDetailScreen() {
                   style={{
                     flex: 1,
                     fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.captionMedium,
+                    ...typography.styles.body3Medium,
                     color: colors.coolNeutral[40],
                   }}
                 >
@@ -458,7 +458,7 @@ export default function CarDetailScreen() {
               <Text
                 style={{
                   fontFamily: typography.fontFamily.pretendard,
-                  ...typography.styles.captionMedium,
+                  ...typography.styles.body2Medium,
                   color: colors.coolNeutral[40],
                 }}
               >
@@ -467,7 +467,7 @@ export default function CarDetailScreen() {
               <Text
                 style={{
                   fontFamily: typography.fontFamily.pretendard,
-                  ...typography.styles.body2Semibold,
+                  ...typography.styles.body1Semibold,
                   color: colors.coolNeutral[80],
                 }}
               >
@@ -490,7 +490,7 @@ export default function CarDetailScreen() {
                 <Text
                   style={{
                     fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.captionMedium,
+                    ...typography.styles.body2Medium,
                     color: colors.coolNeutral[40],
                   }}
                 >
@@ -500,7 +500,7 @@ export default function CarDetailScreen() {
                   <Text
                     style={{
                       fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Semibold,
+                      ...typography.styles.body1Semibold,
                       color: colors.primary[50],
                     }}
                   >
