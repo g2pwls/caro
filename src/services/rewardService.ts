@@ -1,5 +1,15 @@
 import apiClient from '@/services/apiClient';
 
+type ApiEnvelope<T> = {
+  code: string;
+  message: string;
+  data: T;
+};
+
+function getApiData<T>(response: { data: ApiEnvelope<T> }): T {
+  return response.data.data;
+}
+
 // ── 카테고리 ──
 
 export type RewardCategory = {
@@ -7,11 +17,7 @@ export type RewardCategory = {
   categoryLabel: string;
 };
 
-type RewardCategoriesResponse = {
-  code: string;
-  message: string;
-  data: RewardCategory[];
-};
+type RewardCategoriesResponse = ApiEnvelope<RewardCategory[]>;
 
 /**
  * 리워드 카테고리 목록 조회
@@ -21,7 +27,7 @@ export async function fetchRewardCategories(): Promise<RewardCategory[]> {
   const response = await apiClient.get<RewardCategoriesResponse>(
     '/api/v1/rewards/categories',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 쿠폰 목록 ──
@@ -43,11 +49,7 @@ type RewardCouponsData = {
   hasNext: boolean;
 };
 
-type RewardCouponsResponse = {
-  code: string;
-  message: string;
-  data: RewardCouponsData;
-};
+type RewardCouponsResponse = ApiEnvelope<RewardCouponsData>;
 
 export type FetchRewardCouponsParams = {
   category?: string;
@@ -67,7 +69,7 @@ export async function fetchRewardCoupons(
     '/api/v1/rewards/coupons',
     { params },
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 보유 포인트 조회 ──
@@ -79,11 +81,7 @@ export type MemberPoints = {
   availablePoints: number;
 };
 
-type MemberPointsResponse = {
-  code: string;
-  message: string;
-  data: MemberPoints;
-};
+type MemberPointsResponse = ApiEnvelope<MemberPoints>;
 
 /**
  * 보유 포인트 조회
@@ -93,7 +91,7 @@ export async function fetchMemberPoints(): Promise<MemberPoints> {
   const response = await apiClient.get<MemberPointsResponse>(
     '/api/v1/members/points',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 미수령 운행 포인트 현황 ──
@@ -102,11 +100,7 @@ export type PendingPoints = {
   totalPendingPoints: number;
 };
 
-type PendingPointsResponse = {
-  code: string;
-  message: string;
-  data: PendingPoints;
-};
+type PendingPointsResponse = ApiEnvelope<PendingPoints>;
 
 /**
  * 미수령 운행 포인트 현황 조회
@@ -116,7 +110,7 @@ export async function fetchPendingPoints(): Promise<PendingPoints> {
   const response = await apiClient.get<PendingPointsResponse>(
     '/api/v1/members/points/pending',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 운행 포인트 수령 ──
@@ -126,11 +120,7 @@ export type ClaimPointsResult = {
   remainingPendingCount: number;
 };
 
-type ClaimPointsResponse = {
-  code: string;
-  message: string;
-  data: ClaimPointsResult;
-};
+type ClaimPointsResponse = ApiEnvelope<ClaimPointsResult>;
 
 /**
  * 운행 포인트 수령
@@ -140,7 +130,7 @@ export async function claimPoints(): Promise<ClaimPointsResult> {
   const response = await apiClient.post<ClaimPointsResponse>(
     '/api/v1/members/points/claim',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 예상 적립 포인트 계산 ──
@@ -150,11 +140,7 @@ export type PointEstimate = {
   estimatedPoints: number;
 };
 
-type PointEstimateResponse = {
-  code: string;
-  message: string;
-  data: PointEstimate;
-};
+type PointEstimateResponse = ApiEnvelope<PointEstimate>;
 
 /**
  * 예상 적립 포인트 계산
@@ -165,7 +151,7 @@ export async function fetchPointEstimate(distanceKm: number): Promise<PointEstim
     '/api/v1/members/points/estimate',
     { params: { distanceKm } },
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 포인트 이력 ──
@@ -193,11 +179,7 @@ type PointHistoryData = {
   histories: PointHistory[];
 };
 
-type PointHistoryResponse = {
-  code: string;
-  message: string;
-  data: PointHistoryData;
-};
+type PointHistoryResponse = ApiEnvelope<PointHistoryData>;
 
 /**
  * 포인트 이력 조회
@@ -207,7 +189,7 @@ export async function fetchPointHistory(): Promise<PointHistoryData> {
   const response = await apiClient.get<PointHistoryResponse>(
     '/api/v1/members/points/history',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 보유 쿠폰 ──
@@ -225,11 +207,7 @@ type MemberCouponsData = {
   coupons: MemberCoupon[];
 };
 
-type MemberCouponsResponse = {
-  code: string;
-  message: string;
-  data: MemberCouponsData;
-};
+type MemberCouponsResponse = ApiEnvelope<MemberCouponsData>;
 
 /**
  * 보유 쿠폰 목록 조회
@@ -239,18 +217,14 @@ export async function fetchMemberCoupons(): Promise<MemberCouponsData> {
   const response = await apiClient.get<MemberCouponsResponse>(
     '/api/v1/members/coupons',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 쿠폰 교환 ──
 
-type ExchangeCouponResponse = {
-  code: string;
-  message: string;
-  data: {
-    id: number;
-  };
-};
+type ExchangeCouponResponse = ApiEnvelope<{
+  id: number;
+}>;
 
 /**
  * 쿠폰 교환
@@ -261,7 +235,7 @@ export async function exchangeCoupon(rewardCouponId: number): Promise<{ id: numb
     '/api/v1/members/coupons',
     { rewardCouponId },
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 보유 쿠폰 상세 ──
@@ -289,11 +263,7 @@ export type AttendanceStatus = {
   attendanceRecords: AttendanceRecord[];
 };
 
-type AttendanceStatusResponse = {
-  code: string;
-  message: string;
-  data: AttendanceStatus;
-};
+type AttendanceStatusResponse = ApiEnvelope<AttendanceStatus>;
 
 /**
  * 출석 현황 조회
@@ -303,7 +273,7 @@ export async function fetchAttendanceStatus(): Promise<AttendanceStatus> {
   const response = await apiClient.get<AttendanceStatusResponse>(
     '/api/v1/members/attendances/status',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 출석 체크 ──
@@ -314,11 +284,7 @@ export type AttendanceResult = {
   points: number;
 };
 
-type AttendanceResponse = {
-  code: string;
-  message: string;
-  data: AttendanceResult;
-};
+type AttendanceResponse = ApiEnvelope<AttendanceResult>;
 
 /**
  * 출석 체크
@@ -328,16 +294,12 @@ export async function checkAttendance(): Promise<AttendanceResult> {
   const response = await apiClient.post<AttendanceResponse>(
     '/api/v1/members/attendances',
   );
-  return response.data.data;
+  return getApiData(response);
 }
 
 // ── 보유 쿠폰 상세 ──
 
-type MemberCouponDetailResponse = {
-  code: string;
-  message: string;
-  data: MemberCouponDetail;
-};
+type MemberCouponDetailResponse = ApiEnvelope<MemberCouponDetail>;
 
 /**
  * 보유 쿠폰 상세 조회
@@ -349,5 +311,5 @@ export async function fetchMemberCouponDetail(
   const response = await apiClient.get<MemberCouponDetailResponse>(
     `/api/v1/members/coupons/${memberCouponId}`,
   );
-  return response.data.data;
+  return getApiData(response);
 }
