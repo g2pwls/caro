@@ -1,14 +1,6 @@
 import apiClient from '@/services/apiClient';
-
-type ApiEnvelope<T> = {
-  code: string;
-  message: string;
-  data: T;
-};
-
-function getApiData<T>(response: { data: ApiEnvelope<T> }): T {
-  return response.data.data;
-}
+import type { ApiEnvelope } from '@/services/apiResponse';
+import { getApiData } from '@/services/apiResponse';
 
 // ── 카테고리 ──
 

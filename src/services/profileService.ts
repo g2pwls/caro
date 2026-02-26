@@ -1,6 +1,8 @@
 import apiClient from '@/services/apiClient';
+import type { ApiEnvelope } from '@/services/apiResponse';
+import { getApiData } from '@/services/apiResponse';
 
-import type { ProfileResponse, ProfileData } from '@/types/profile';
+import type { ProfileData } from '@/types/profile';
 
 // 마이페이지 대시보드
 export type DashboardData = {
@@ -9,25 +11,19 @@ export type DashboardData = {
   totalDrivingRecordCount: number;
 };
 
-type DashboardResponse = {
-  code: string;
-  message: string;
-  data: DashboardData;
-};
-
 export async function fetchDashboard(): Promise<DashboardData> {
-  const { data } = await apiClient.get<DashboardResponse>(
+  const response = await apiClient.get<ApiEnvelope<DashboardData>>(
     '/api/v1/members/dashboard',
   );
-  return data.data;
+  return getApiData(response);
 }
 
 export async function fetchProfile(accessToken: string): Promise<ProfileData> {
-  const { data } = await apiClient.get<ProfileResponse>(
+  const response = await apiClient.get<ApiEnvelope<ProfileData>>(
     '/api/v1/profiles',
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export interface UpdateProfileRequest {
@@ -51,10 +47,10 @@ export async function updateProfile(
     body.car = request.car;
   }
 
-  const { data } = await apiClient.patch<ProfileResponse>(
+  const response = await apiClient.patch<ApiEnvelope<ProfileData>>(
     '/api/v1/profiles',
     body,
   );
 
-  return data.data;
+  return getApiData(response);
 }

@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient';
+import type { ApiEnvelope } from '@/services/apiResponse';
+import { getApiData } from '@/services/apiResponse';
 
-import type { ApiResponse } from '@/types/vehicle';
 import type {
   DrivingRecordsRequest,
   DrivingRecordsResponse,
@@ -15,7 +16,7 @@ export async function getDrivingRecords(params: {
   request: DrivingRecordsRequest;
   accessToken: string;
 }): Promise<DrivingRecordsResponse> {
-  const { data } = await apiClient.get<ApiResponse<DrivingRecordsResponse>>(
+  const response = await apiClient.get<ApiEnvelope<DrivingRecordsResponse>>(
     '/api/v1/driving-records',
     {
       params: {
@@ -26,45 +27,45 @@ export async function getDrivingRecords(params: {
     },
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function getDrivingSummary(params: {
   accessToken: string;
 }): Promise<DrivingSummary> {
-  const { data } = await apiClient.get<ApiResponse<DrivingSummary>>(
+  const response = await apiClient.get<ApiEnvelope<DrivingSummary>>(
     '/api/v1/driving-records/summary',
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function getTodayDrivingRecords(): Promise<TodayDrivingRecordsResponse> {
-  const { data } = await apiClient.get<ApiResponse<TodayDrivingRecordsResponse>>(
+  const response = await apiClient.get<ApiEnvelope<TodayDrivingRecordsResponse>>(
     '/api/v1/driving-records/today',
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function getDrivingRecordDetail(
   drivingRecordId: number,
 ): Promise<DrivingRecordDetailResponse> {
-  const { data } = await apiClient.get<ApiResponse<DrivingRecordDetailResponse>>(
+  const response = await apiClient.get<ApiEnvelope<DrivingRecordDetailResponse>>(
     `/api/v1/driving-records/${drivingRecordId}`,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function createDrivingRecord(params: {
   request: CreateDrivingRecordRequest;
   accessToken: string;
 }): Promise<CreateDrivingRecordResponse> {
-  const { data } = await apiClient.post<ApiResponse<CreateDrivingRecordResponse>>(
+  const response = await apiClient.post<ApiEnvelope<CreateDrivingRecordResponse>>(
     '/api/v1/driving-records',
     params.request,
   );
 
-  return data.data;
+  return getApiData(response);
 }

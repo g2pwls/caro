@@ -1,6 +1,7 @@
 import apiClient from '@/services/apiClient';
+import type { ApiEnvelope } from '@/services/apiResponse';
+import { getApiData } from '@/services/apiResponse';
 
-import type { ApiResponse } from '@/types/vehicle';
 import type {
   ExpensesRequest,
   ExpensesResponse,
@@ -16,7 +17,7 @@ export async function getExpenses(params: {
   request: ExpensesRequest;
   accessToken: string;
 }): Promise<ExpensesResponse> {
-  const { data } = await apiClient.get<ApiResponse<ExpensesResponse>>(
+  const response = await apiClient.get<ApiEnvelope<ExpensesResponse>>(
     '/api/v1/expenses',
     {
       params: {
@@ -29,19 +30,19 @@ export async function getExpenses(params: {
     },
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function createExpense(params: {
   request: CreateExpenseRequest;
   accessToken: string;
 }): Promise<CreateExpenseResponse> {
-  const { data } = await apiClient.post<ApiResponse<CreateExpenseResponse>>(
+  const response = await apiClient.post<ApiEnvelope<CreateExpenseResponse>>(
     '/api/v1/expenses',
     params.request,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function updateExpense(params: {
@@ -49,19 +50,19 @@ export async function updateExpense(params: {
   request: UpdateExpenseRequest;
   accessToken: string;
 }): Promise<UpdateExpenseResponse> {
-  const { data } = await apiClient.put<ApiResponse<UpdateExpenseResponse>>(
+  const response = await apiClient.put<ApiEnvelope<UpdateExpenseResponse>>(
     `/api/v1/expenses/${params.expenseId}`,
     params.request,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function getExpenseSummary(params: {
   yearMonth?: string;
   accessToken: string;
 }): Promise<ExpenseSummary> {
-  const { data } = await apiClient.get<ApiResponse<ExpenseSummary>>(
+  const response = await apiClient.get<ApiEnvelope<ExpenseSummary>>(
     '/api/v1/expenses/summary',
     {
       params: {
@@ -70,15 +71,15 @@ export async function getExpenseSummary(params: {
     },
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function getExpenseCategories(params: {
   accessToken: string;
 }): Promise<ExpenseCategoryItem[]> {
-  const { data } = await apiClient.get<ApiResponse<ExpenseCategoryItem[]>>(
+  const response = await apiClient.get<ApiEnvelope<ExpenseCategoryItem[]>>(
     '/api/v1/expenses/categories',
   );
 
-  return data.data;
+  return getApiData(response);
 }

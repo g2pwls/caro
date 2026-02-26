@@ -1,6 +1,5 @@
 import axios from 'axios';
 
-import type { ApiResponse } from '@/types/vehicle';
 import type {
   LoginRequest,
   LoginResponseData,
@@ -9,6 +8,8 @@ import type {
   ReissueRequest,
   ReissueResponseData,
 } from '@/types/auth';
+import type { ApiEnvelope } from '@/services/apiResponse';
+import { getApiData } from '@/services/apiResponse';
 import { requireApiBaseUrl } from '@/utils/api';
 
 type EmailExistsResponse = {
@@ -20,12 +21,12 @@ export async function loginWithEmail(
 ): Promise<LoginResponseData> {
   const baseUrl = requireApiBaseUrl();
 
-  const { data } = await axios.post<ApiResponse<LoginResponseData>>(
+  const response = await axios.post<ApiEnvelope<LoginResponseData>>(
     `${baseUrl}/api/v1/auth/login`,
     payload,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function signUpWithEmail(
@@ -33,25 +34,25 @@ export async function signUpWithEmail(
 ): Promise<SignUpResponseData> {
   const baseUrl = requireApiBaseUrl();
 
-  const { data } = await axios.post<ApiResponse<SignUpResponseData>>(
+  const response = await axios.post<ApiEnvelope<SignUpResponseData>>(
     `${baseUrl}/api/v1/auth/sign-up`,
     payload,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function checkEmailExists(email: string): Promise<boolean> {
   const baseUrl = requireApiBaseUrl();
 
-  const { data } = await axios.get<ApiResponse<EmailExistsResponse>>(
+  const response = await axios.get<ApiEnvelope<EmailExistsResponse>>(
     `${baseUrl}/api/v1/auth/email/exists`,
     {
       params: { email },
     },
   );
 
-  return data.data?.exists ?? false;
+  return getApiData(response)?.exists ?? false;
 }
 
 export async function reissueToken(
@@ -59,12 +60,12 @@ export async function reissueToken(
 ): Promise<ReissueResponseData> {
   const baseUrl = requireApiBaseUrl();
 
-  const { data } = await axios.post<ApiResponse<ReissueResponseData>>(
+  const response = await axios.post<ApiEnvelope<ReissueResponseData>>(
     `${baseUrl}/api/v1/auth/reissue`,
     payload,
   );
 
-  return data.data;
+  return getApiData(response);
 }
 
 export async function logout(params: { accessToken: string }): Promise<void> {
@@ -74,7 +75,7 @@ export async function logout(params: { accessToken: string }): Promise<void> {
   }
 
   // logout은 apiClient를 사용하지 않음 (순환 참조 방지 + 토큰 만료 시에도 호출 필요)
-  await axios.post<ApiResponse<unknown>>(
+  await axios.post<ApiEnvelope<unknown>>(
     `${baseUrl}/api/v1/auth/logout`,
     null,
     {
