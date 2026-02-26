@@ -31,6 +31,7 @@ import { useMyCarStore } from '@/stores/myCarStore';
 import type { Expense, ExpenseCategory } from '@/types/expense';
 import type { PrimaryCar } from '@/types/profile';
 import { getTabRoute } from '@/utils/navigation';
+import { toDotYmd, toYearMonth, toYmd } from '@/utils/date';
 
 import { performOcr } from '@/services/ocrService';
 
@@ -144,7 +145,7 @@ function parseKoreanDateToIso(koreanDate: string): string {
   const match = koreanDate.match(/(\d{4})년\s*(\d{1,2})월\s*(\d{1,2})일/);
   if (!match) return '';
   const [, year, month, day] = match;
-  return `${year}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
+  return toYmd(Number(year), Number(month), Number(day));
 }
 
 export default function CoinScreen() {
@@ -432,8 +433,7 @@ export default function CoinScreen() {
 
   // 실제 지출 데이터 기반으로 날짜별 합계 계산
   const expenseByDay = useMemo(() => {
-    const mm = String(currentMonthIndex + 1).padStart(2, '0');
-    const prefix = `${currentYear}-${mm}`;
+    const prefix = toYearMonth(currentYear, currentMonthIndex + 1);
     
     const dayTotals = new Map<number, number>();
     
@@ -472,8 +472,7 @@ export default function CoinScreen() {
   useEffect(() => {
     if (selectedTab === 'calendar' && accessToken) {
       const apiCategory = mapUiCategoryToApi(calendarSelectedCategory);
-      const mm = String(currentMonthIndex + 1).padStart(2, '0');
-      const yearMonth = `${currentYear}-${mm}`;
+      const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
       fetchExpenses({
         accessToken,
         category: apiCategory,
@@ -491,8 +490,7 @@ export default function CoinScreen() {
         fetchSummary({ accessToken });
       } else {
         // 캘린더 탭: 월별 조회
-        const mm = String(currentMonthIndex + 1).padStart(2, '0');
-        const yearMonth = `${currentYear}-${mm}`;
+        const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
         fetchSummary({ accessToken, yearMonth });
       }
     }
@@ -600,21 +598,16 @@ export default function CoinScreen() {
 
   // 캘린더 탭용: 월 전체 또는 선택한 날짜의 지출 필터링
   const selectedDateString = useMemo(() => {
-    const mm = String(currentMonthIndex + 1).padStart(2, '0');
-    const dd = String(selectedDay).padStart(2, '0');
-    return `${currentYear}-${mm}-${dd}`;
+    return toYmd(currentYear, currentMonthIndex + 1, selectedDay);
   }, [currentYear, currentMonthIndex, selectedDay]);
 
   const selectedDateLabel = useMemo(() => {
-    const mm = String(currentMonthIndex + 1).padStart(2, '0');
-    const dd = String(selectedDay).padStart(2, '0');
-    return `${currentYear}.${mm}.${dd}`;
+    return toDotYmd(currentYear, currentMonthIndex + 1, selectedDay);
   }, [currentYear, currentMonthIndex, selectedDay]);
 
   // 해당 달의 모든 지출
   const calendarMonthExpenseItems = useMemo<ExpenseItem[]>(() => {
-    const mm = String(currentMonthIndex + 1).padStart(2, '0');
-    const prefix = `${currentYear}-${mm}`;
+    const prefix = toYearMonth(currentYear, currentMonthIndex + 1);
     return expenseItems.filter((item) => item.date.startsWith(prefix));
   }, [expenseItems, currentYear, currentMonthIndex]);
 
@@ -1593,8 +1586,7 @@ export default function CoinScreen() {
                             resetAddExpenseForm();
                             setEditingExpenseId(null);
                             // 지출 목록 + 요약 새로고침
-                            const mm = String(currentMonthIndex + 1).padStart(2, '0');
-                            const yearMonth = `${currentYear}-${mm}`;
+                            const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
                             fetchExpenses({ accessToken, yearMonth, size: 100 });
                             if (selectedTab === 'expense') {
                               fetchSummary({ accessToken });
@@ -1628,8 +1620,7 @@ export default function CoinScreen() {
                             setIsAddExpenseOpen(false);
                             resetAddExpenseForm();
                             // 지출 목록 + 요약 새로고침
-                            const mm = String(currentMonthIndex + 1).padStart(2, '0');
-                            const yearMonth = `${currentYear}-${mm}`;
+                            const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
                             fetchExpenses({ accessToken, yearMonth, size: 100 });
                             if (selectedTab === 'expense') {
                               fetchSummary({ accessToken });

@@ -1,5 +1,21 @@
 const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'] as const;
 
+export function pad2(value: number | string): string {
+  return String(value).padStart(2, '0');
+}
+
+export function toYearMonth(year: number, month: number): string {
+  return `${year}-${pad2(month)}`;
+}
+
+export function toYmd(year: number, month: number, day: number): string {
+  return `${year}-${pad2(month)}-${pad2(day)}`;
+}
+
+export function toDotYmd(year: number, month: number, day: number): string {
+  return `${year}.${pad2(month)}.${pad2(day)}`;
+}
+
 export function formatDateOnly(isoDate: string): string {
   return isoDate.slice(0, 10);
 }

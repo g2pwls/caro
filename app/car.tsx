@@ -8,7 +8,7 @@ import { MainButton } from '@/components/common/Button/MainButton';
 import { useAuthStore } from '@/stores/authStore';
 import { useDrivingRecordStore } from '@/stores/drivingRecordStore';
 import type { DrivingRecord } from '@/types/drivingRecord';
-import { formatDateWithDay, formatTimeHHMM } from '@/utils/date';
+import { formatDateWithDay, formatTimeHHMM, toYearMonth } from '@/utils/date';
 import { getTabRoute } from '@/utils/navigation';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
@@ -268,7 +268,7 @@ export default function CarScreen() {
   // 컴포넌트 마운트 시 현재 년월 기준으로 데이터 로드
   useEffect(() => {
     if (accessToken) {
-      const defaultYearMonth = `${currentYear}-${String(currentMonth).padStart(2, '0')}`;
+      const defaultYearMonth = toYearMonth(currentYear, currentMonth);
       fetchRecords({ yearMonth: defaultYearMonth, accessToken });
       fetchSummary({ accessToken });
     }
@@ -283,7 +283,7 @@ export default function CarScreen() {
 
 
   const applyDatePicker = useCallback(() => {
-    const newYearMonth = `${pickedYear}-${String(pickedMonth).padStart(2, '0')}`;
+    const newYearMonth = toYearMonth(pickedYear, pickedMonth);
     closeDatePicker();
     if (accessToken) {
       fetchRecords({ yearMonth: newYearMonth, accessToken });
@@ -478,7 +478,7 @@ export default function CarScreen() {
                       const today = new Date();
                       setPickedYear(today.getFullYear());
                       setPickedMonth(today.getMonth() + 1);
-                      const defaultYM = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+                      const defaultYM = toYearMonth(today.getFullYear(), today.getMonth() + 1);
                       if (accessToken) {
                         fetchRecords({ yearMonth: defaultYM, accessToken });
                       }
