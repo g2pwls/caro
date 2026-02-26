@@ -22,7 +22,6 @@ function onlyDigits(value: string) {
 export default function VehicleMileageScreen() {
   const router = useRouter();
   const updateVehicle = useSignupDraftStore((s) => s.updateVehicle);
-  const vehicle = useSignupDraftStore((s) => s.vehicle);
 
   const [mileage, setMileage] = useState('');
   const [mileageError, setMileageError] = useState<string | undefined>();
@@ -46,32 +45,12 @@ export default function VehicleMileageScreen() {
       return;
     }
 
-    updateVehicle({
-      brandId: vehicle.brandId,
-      brandName: vehicle.brandName,
-      modelId: vehicle.modelId,
-      modelName: vehicle.modelName,
-      modelVariant: vehicle.modelVariant,
-      modelStartYear: vehicle.modelStartYear,
-      modelEndYear: vehicle.modelEndYear,
-      registrationNumber: vehicle.registrationNumber,
-      mileage: mileageNumber,
-    });
+    updateVehicle({ mileage: mileageNumber });
     router.push('/(auth)/vehicle-complete');
   };
 
   const handleSkip = () => {
-    updateVehicle({
-      brandId: vehicle.brandId,
-      brandName: vehicle.brandName,
-      modelId: vehicle.modelId,
-      modelName: vehicle.modelName,
-      modelVariant: vehicle.modelVariant,
-      modelStartYear: vehicle.modelStartYear,
-      modelEndYear: vehicle.modelEndYear,
-      registrationNumber: vehicle.registrationNumber,
-      mileage: DEFAULT_MILEAGE,
-    });
+    updateVehicle({ mileage: DEFAULT_MILEAGE });
     router.push('/(auth)/vehicle-complete');
   };
 

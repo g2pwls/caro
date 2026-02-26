@@ -98,8 +98,6 @@ export default function VehicleModelScreen() {
     if (!selected) return;
 
     updateVehicle({
-      brandId: brandId as number,
-      brandName,
       modelId: selected.id,
       modelName: selected.name,
       modelVariant: selected.variant,

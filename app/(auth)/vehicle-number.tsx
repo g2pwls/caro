@@ -15,7 +15,6 @@ export default function VehicleNumberScreen() {
   const router = useRouter();
   const userName = useSignupDraftStore((s) => s.account?.name ?? '');
   const updateVehicle = useSignupDraftStore((s) => s.updateVehicle);
-  const vehicle = useSignupDraftStore((s) => s.vehicle);
 
   const [carNumber, setCarNumber] = useState('');
   const [carNumberError, setCarNumberError] = useState<string | undefined>();
@@ -33,13 +32,6 @@ export default function VehicleNumberScreen() {
     if (!isNextEnabled) return;
 
     updateVehicle({
-      brandId: vehicle.brandId,
-      brandName: vehicle.brandName,
-      modelId: vehicle.modelId,
-      modelName: vehicle.modelName,
-      modelVariant: vehicle.modelVariant,
-      modelStartYear: vehicle.modelStartYear,
-      modelEndYear: vehicle.modelEndYear,
       registrationNumber: trimmed,
     });
     router.push('/(auth)/vehicle-mileage');
