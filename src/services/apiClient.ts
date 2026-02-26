@@ -1,11 +1,7 @@
 import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 import { reissueToken } from '@/services/authService';
-
-function getApiBaseUrl() {
-  const base = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
-  return base.replace(/\/+$/, '');
-}
+import { getApiBaseUrl } from '@/utils/api';
 
 const apiClient = axios.create({
   baseURL: getApiBaseUrl(),

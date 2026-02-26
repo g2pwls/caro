@@ -28,6 +28,7 @@ import { fetchPointHistory, fetchPointEstimate, fetchPendingPoints, claimPoints,
 import { fetchDashboard } from '@/services/profileService';
 import { syncWidgetData, calculateProgressRatio } from '@/hooks/useWidgetSync';
 import { getSessionRoute, clearSession, getOrphanedSession } from '@/services/routePersistService';
+import { formatDateOnly, formatTimeHHMM } from '@/utils/date';
 
 import BRightIcon from '@/assets/icons/bright.svg';
 import BoxIcon from '@/assets/icons/box.svg';
@@ -72,18 +73,6 @@ import B8Icon from '@/assets/icons/b8.svg';
 import B9Icon from '@/assets/icons/b9.svg';
 
 const DRIVE_NUMBER_ICONS = [B1Icon, B2Icon, B3Icon, B4Icon, B5Icon, B6Icon, B7Icon, B8Icon, B9Icon];
-
-// 포인트 포맷 헬퍼
-function formatDateOnly(isoDate: string): string {
-  return isoDate.slice(0, 10);
-}
-
-function formatTimeHHMM(isoDate: string): string {
-  const d = new Date(isoDate);
-  const h = d.getHours().toString().padStart(2, '0');
-  const m = d.getMinutes().toString().padStart(2, '0');
-  return `${h}:${m}`;
-}
 
 function formatDuration(startISO: string, endISO: string): string {
   const diffMs = new Date(endISO).getTime() - new Date(startISO).getTime();

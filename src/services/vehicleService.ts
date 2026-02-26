@@ -9,18 +9,11 @@ import type {
   VehicleModel,
 } from '@/types/vehicle';
 import type { PrimaryCar } from '@/types/profile';
-
-function getApiBaseUrl() {
-  const base = process.env.EXPO_PUBLIC_API_BASE_URL ?? '';
-  return base.replace(/\/+$/, '');
-}
+import { requireApiBaseUrl } from '@/utils/api';
 
 // 인증 불필요 — 일반 axios 사용
 export async function getVehicleBrands(): Promise<VehicleBrand[]> {
-  const baseUrl = getApiBaseUrl();
-  if (!baseUrl) {
-    throw new Error('EXPO_PUBLIC_API_BASE_URL 이 설정되어있지 않습니다.');
-  }
+  const baseUrl = requireApiBaseUrl();
 
   const { data } = await axios.get<ApiResponse<VehicleBrand[]>>(
     `${baseUrl}/api/v1/vehicles/brands`,
@@ -33,10 +26,7 @@ export async function getVehicleModels(params: {
   brandId: number;
   keyword?: string;
 }): Promise<VehicleModel[]> {
-  const baseUrl = getApiBaseUrl();
-  if (!baseUrl) {
-    throw new Error('EXPO_PUBLIC_API_BASE_URL 이 설정되어있지 않습니다.');
-  }
+  const baseUrl = requireApiBaseUrl();
 
   const { data } = await axios.get<ApiResponse<VehicleModel[]>>(
     `${baseUrl}/api/v1/vehicles/brands/${params.brandId}/models`,

@@ -7,28 +7,11 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useAuthStore } from '@/stores/authStore';
 import { getDrivingRecordDetail } from '@/services/drivingRecordService';
 import type { DrivingRecordDetailResponse } from '@/types/drivingRecord';
+import { formatDateWithDay, formatTimeHHMM } from '@/utils/date';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import BCarIcon from '@/assets/icons/bcar.svg';
 import PointIcon from '@/assets/icons/point.svg';
-
-const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
-function formatDateDisplay(isoDateTime: string): string {
-  const d = new Date(isoDateTime);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const dayName = DAY_NAMES[d.getDay()];
-  return `${y}. ${m}. ${day} (${dayName})`;
-}
-
-function formatTime(isoDateTime: string): string {
-  const d = new Date(isoDateTime);
-  const h = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${h}:${min}`;
-}
 
 function DetailTag({ label }: { label: '출발' | '도착' }) {
   const bgColor = label === '출발' ? colors.primary[50] : colors.red[40];
@@ -235,9 +218,9 @@ export default function CarDetailScreen() {
     }
   }, [accessToken, primaryCar, loadProfile]);
 
-  const dateDisplay = detail ? formatDateDisplay(detail.startDateTime) : '';
-  const startTime = detail ? formatTime(detail.startDateTime) : '';
-  const endTime = detail ? formatTime(detail.endDateTime) : '';
+  const dateDisplay = detail ? formatDateWithDay(detail.startDateTime) : '';
+  const startTime = detail ? formatTimeHHMM(detail.startDateTime) : '';
+  const endTime = detail ? formatTimeHHMM(detail.endDateTime) : '';
   const carModel = detail
     ? [detail.vehicleBrandName, detail.vehicleModelName, detail.vehicleVariantName]
         .filter(Boolean)

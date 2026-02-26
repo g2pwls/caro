@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
 import { Alert, Pressable, SafeAreaView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import axios from 'axios';
 
 import { colors, typography, borderRadius } from '@/theme';
 import { MainButton } from '@/components/common/Button/MainButton';
 import { formatNumberWithComma } from '@/utils/number';
+import { getErrorMessage } from '@/utils/error';
 import { signUpWithEmail } from '@/services/authService';
 import { registerMyCar } from '@/services/vehicleService';
 import { useAuthStore } from '@/stores/authStore';
@@ -89,12 +89,7 @@ export default function VehicleCompleteScreen() {
         Alert.alert('차량 추가 완료', '새 차량이 추가되었습니다.');
         router.replace('/user');
       } catch (e: unknown) {
-        const message =
-          axios.isAxiosError(e) && e.response?.data?.message
-            ? String(e.response.data.message)
-            : e instanceof Error
-              ? e.message
-              : '차량 추가 중 오류가 발생했습니다.';
+        const message = getErrorMessage(e, '차량 추가 중 오류가 발생했습니다.');
         Alert.alert('차량 추가 실패', message);
       } finally {
         setIsSubmitting(false);
@@ -137,12 +132,7 @@ export default function VehicleCompleteScreen() {
       clearDraft();
       router.replace('/home');
     } catch (e: unknown) {
-      const message =
-        axios.isAxiosError(e) && e.response?.data?.message
-          ? String(e.response.data.message)
-          : e instanceof Error
-            ? e.message
-            : '회원가입 중 오류가 발생했습니다.';
+      const message = getErrorMessage(e, '회원가입 중 오류가 발생했습니다.');
       Alert.alert('회원가입 실패', message);
     } finally {
       setIsSubmitting(false);

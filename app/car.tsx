@@ -8,6 +8,7 @@ import { MainButton } from '@/components/common/Button/MainButton';
 import { useAuthStore } from '@/stores/authStore';
 import { useDrivingRecordStore } from '@/stores/drivingRecordStore';
 import type { DrivingRecord } from '@/types/drivingRecord';
+import { formatDateWithDay, formatTimeHHMM } from '@/utils/date';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import SearchIcon from '@/assets/icons/search.svg';
@@ -21,24 +22,6 @@ const DATE_WHEEL_HEIGHT = 220;
 const DATE_WHEEL_PADDING = (DATE_WHEEL_HEIGHT - DATE_WHEEL_ITEM_HEIGHT) / 2;
 const DATE_PICKER_YEARS: number[] = [2024, 2025, 2026, 2027, 2028];
 const DATE_PICKER_MONTHS: number[] = Array.from({ length: 12 }, (_, i) => i + 1);
-
-const DAY_NAMES = ['일', '월', '화', '수', '목', '금', '토'];
-
-function formatDateLabel(isoDateTime: string): string {
-  const d = new Date(isoDateTime);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const dayName = DAY_NAMES[d.getDay()];
-  return `${y}. ${m}. ${day} (${dayName})`;
-}
-
-function formatTimeLabel(isoDateTime: string): string {
-  const d = new Date(isoDateTime);
-  const h = String(d.getHours()).padStart(2, '0');
-  const min = String(d.getMinutes()).padStart(2, '0');
-  return `${h}:${min}`;
-}
 
 function formatDistanceLabel(distanceKm: number): string {
   return `${distanceKm.toFixed(1)} km`;
@@ -111,10 +94,10 @@ function Tag({ label }: { label: '출발' | '도착' }) {
 }
 
 function DriveRecordCard({ item, onPress }: { item: DrivingRecord; onPress?: () => void }) {
-  const dateLabel = formatDateLabel(item.startDateTime);
+  const dateLabel = formatDateWithDay(item.startDateTime);
   const earnedLabel = formatEarnedPointsLabel(item.earnedPoints);
-  const startTime = formatTimeLabel(item.startDateTime);
-  const endTime = formatTimeLabel(item.endDateTime);
+  const startTime = formatTimeHHMM(item.startDateTime);
+  const endTime = formatTimeHHMM(item.endDateTime);
   const distanceLabel = formatDistanceLabel(item.distanceKm);
   const carModel = formatCarModel(item.vehicleBrandName, item.vehicleModelName, item.vehicleVariantName);
 

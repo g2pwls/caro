@@ -8,9 +8,9 @@ import { KakaoButton } from '../../src/components/common/Button/KakaoButton';
 import { GoogleButton } from '../../src/components/common/Button/GoogleButton';
 import { MainButton } from '../../src/components/common/Button/MainButton';
 import { loginWithEmail } from '@/services/authService';
-import axios from 'axios';
 import { useAuthStore } from '@/stores/authStore';
 import { useProfileStore } from '@/stores/profileStore';
+import { getErrorMessage } from '@/utils/error';
 import LogoIcon from '@/assets/icons/logo.svg';
 
 export default function LoginScreen() {
@@ -58,12 +58,7 @@ export default function LoginScreen() {
       // 로그인 성공 후 홈으로 이동
       router.replace('/home');
     } catch (e) {
-      const message =
-        axios.isAxiosError(e) && e.response?.data?.message
-          ? String(e.response.data.message)
-          : e instanceof Error
-            ? e.message
-            : '로그인 중 오류가 발생했습니다.';
+      const message = getErrorMessage(e, '로그인 중 오류가 발생했습니다.');
       Alert.alert('로그인 실패', message);
     } finally {
       setIsSubmitting(false);

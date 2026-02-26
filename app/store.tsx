@@ -28,6 +28,11 @@ import {
   type MemberCoupon,
   type MemberCouponDetail,
 } from '@/services/rewardService';
+import {
+  formatDateDotSeparated,
+  formatDateKoreanWithUntil,
+  formatDateOnly,
+} from '@/utils/date';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import DownIcon from '@/assets/icons/DownIcon.svg';
@@ -147,11 +152,6 @@ function ProductCard({ product, onPress }: { product: RewardCoupon; onPress?: ()
       </Text>
     </Pressable>
   );
-}
-
-// ISO 날짜 문자열에서 YYYY-MM-DD만 추출
-function formatDateOnly(isoDate: string): string {
-  return isoDate.slice(0, 10);
 }
 
 function formatPointAmount(amount: number) {
@@ -624,23 +624,6 @@ export default function StoreScreen() {
   // 탭별 배경색
   const backgroundColor = selectedTab === 'point' ? colors.coolNeutral[10] : colors.background.default;
 
-  // 날짜 포맷 함수
-  const formatExpiryDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}년 ${month}월 ${day}일까지`;
-  };
-
-  const formatExchangeDate = (dateStr: string) => {
-    const date = new Date(dateStr);
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year} . ${month} . ${day}`;
-  };
-
   const handleCouponUse = async (coupon: MemberCoupon) => {
     setSelectedCoupon(coupon);
     setCouponDetail(null);
@@ -816,7 +799,7 @@ export default function StoreScreen() {
                             color: colors.coolNeutral[90],
                           }}
                         >
-                          {formatExpiryDate(couponDetail?.expiredAt || selectedCoupon.expiredAt)}
+                          {formatDateKoreanWithUntil(couponDetail?.expiredAt || selectedCoupon.expiredAt)}
                         </Text>
                         <View
                           style={{
@@ -885,7 +868,7 @@ export default function StoreScreen() {
                             color: colors.coolNeutral[90],
                           }}
                         >
-                          {formatExchangeDate(couponDetail.exchangedAt)}
+                          {formatDateDotSeparated(couponDetail.exchangedAt)}
                         </Text>
                       </View>
                     )}
