@@ -22,6 +22,7 @@ import { CoinBottomSection } from '@/components/coin/sections/CoinBottomSection'
 import { CoinCalendarSection } from '@/components/coin/sections/CoinCalendarSection';
 import { CoinExpenseSection } from '@/components/coin/sections/CoinExpenseSection';
 import { CoinHeaderSummarySection } from '@/components/coin/sections/CoinHeaderSummarySection';
+import { getCategoryLabel } from '@/components/coin/constants/expenseCategoryMeta';
 import { useAuthStore } from '@/stores/authStore';
 import { useExpenseStore } from '@/stores/expenseStore';
 import { useProfileStore } from '@/stores/profileStore';
@@ -509,19 +510,7 @@ export default function CoinScreen() {
     openCarSelect();
   };
 
-  const selectedCategoryLabel = useMemo(() => {
-    const map: Record<CategoryKey, string> = {
-      ALL: '전체',
-      FUEL: '주유비',
-      PARKING: '주차비',
-      REPAIR: '정비·수리비',
-      TOLL: '통행료',
-      CAR_WASH: '세차비',
-      INSURANCE: '보험료',
-      ACCESSORY: '자동차 용품비',
-    };
-    return map[selectedCategory];
-  }, [selectedCategory]);
+  const selectedCategoryLabel = getCategoryLabel(selectedCategory);
 
   const calendarCells = useMemo<CalendarCell[]>(() => {
     const firstDate = new Date(currentYear, currentMonthIndex, 1);

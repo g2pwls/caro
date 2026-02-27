@@ -20,6 +20,15 @@ export const EXPENSE_CATEGORY_LABEL_MAP: Record<ExpenseCategoryKey, string> = {
   ACCESSORY: '자동차 용품비',
 };
 
+const CATEGORY_LABEL_MAP: Record<CategoryKey, string> = {
+  ALL: '전체',
+  ...EXPENSE_CATEGORY_LABEL_MAP,
+};
+
+export function getCategoryLabel(category: CategoryKey): string {
+  return CATEGORY_LABEL_MAP[category];
+}
+
 export function renderExpenseCategoryIcon(category: ExpenseCategoryKey): ReactNode {
   if (category === 'FUEL') return <OilingIcon width={24} height={24} />;
   if (category === 'PARKING') return <ParkingIcon width={24} height={24} />;
