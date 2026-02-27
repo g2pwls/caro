@@ -14,16 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { borderRadius, colors, typography } from '@/theme';
-import { NavigationBar } from '@/components/common/Bar/NavigationBar';
-import { Toast } from '@/components/common/Toast/Toast';
-import CouponTab from '@/components/common/Category/CouponTab';
-import { MainButton } from '@/components/common/Button/MainButton';
 import CategoryTab from '@/components/common/Category/CategoryTab';
 import type { CategoryKey } from '@/constants/categories';
 import { CarSelectModal } from '@/components/coin/modals/CarSelectModal';
 import { DatePickerModal } from '@/components/coin/modals/DatePickerModal';
 import { ExpenseDetailModal } from '@/components/coin/modals/ExpenseDetailModal';
 import { ExpenseFormModal } from '@/components/coin/modals/ExpenseFormModal';
+import { CoinBottomSection } from '@/components/coin/sections/CoinBottomSection';
+import { CoinHeaderSummarySection } from '@/components/coin/sections/CoinHeaderSummarySection';
 import { useAuthStore } from '@/stores/authStore';
 import { useExpenseStore } from '@/stores/expenseStore';
 import { useProfileStore } from '@/stores/profileStore';
@@ -42,13 +40,8 @@ import {
 
 import { performOcr } from '@/services/ocrService';
 
-import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import DownIcon from '@/assets/icons/DownIcon.svg';
 import UpIcon from '@/assets/icons/UpIcon.svg';
-import GraphIcon from '@/assets/icons/graphIcon.svg';
-import UpGraphIcon from '@/assets/icons/upgraph.svg';
-import RGraphIcon from '@/assets/icons/rgraph.svg';
-import GGraphIcon from '@/assets/icons/ggraph.svg';
 import LeftIcon from '@/assets/icons/LeftIcon.svg';
 import RightIcon from '@/assets/icons/RightIcon.svg';
 import GRightIcon from '@/assets/icons/GRightIcon.svg';
@@ -510,6 +503,12 @@ export default function CoinScreen() {
     return `${y}년 ${String(Number(m))}월부터 사용한 금액이에요.`;
   }, [summary]);
 
+  const summaryStartYearMonthLabel = useMemo(() => {
+    if (!summary?.period?.startDate) return null;
+    const [y, m] = summary.period.startDate.split('-');
+    return `${y}년 ${String(Number(m))}월`;
+  }, [summary]);
+
   const summaryTotalAmountLabel = useMemo(() => {
     if (!summary) return '0원';
     return `${summary.totalAmount.amount.toLocaleString('ko-KR')}원`;
@@ -824,262 +823,23 @@ export default function CoinScreen() {
         }}
       >
         <View style={{ width: '100%', flex: 1, gap: 32 }}>
-          <View style={{ width: '100%' }}>
-          {/* 상단 헤더 */}
-          <View
-            style={{
-              paddingVertical: 12,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-              backgroundColor: colors.background.default,
-            }}
-          >
-            <Pressable
-              onPress={() => router.back()}
-              style={{ width: 24, height: 24, justifyContent: 'center' }}
-              accessibilityRole="button"
-              accessibilityLabel="back"
-            >
-              <ArrowLeftIcon width={24} height={24} />
-            </Pressable>
-
-            <Text
-              style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.h3Semibold,
-                color: colors.coolNeutral[90],
-              }}
-            >
-              지출관리
-            </Text>
-          </View>
-
-          {/* 탭 + 요약 */}
-          <View
-            style={{
-              width: '100%',
-              backgroundColor: colors.background.default,
-            }}
-          >
-            <CouponTab tabs={tabs} selectedTab={selectedTab} onTabChange={setSelectedTab} />
-          </View>
-          <View
-            style={{
-              width: '100%',
-              backgroundColor: selectedTab === 'expense' ? '#FFFFFF' : colors.background.default,
-              paddingTop: 20,
-              paddingBottom: 20
-            }}
-          >
-            <View style={{ paddingHorizontal: 20 }}>
-              {/* 요약 카드 */}
-              <View
-                style={{
-                  width: '100%',
-                  backgroundColor: colors.coolNeutral[10],
-                  borderRadius: borderRadius.md,
-                  padding: 20,
-                }}
-              >
-              <View
-                style={{
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.body2Semibold,
-                    color: colors.coolNeutral[80],
-                  }}
-                >
-                  <Text style={{ color: colors.primary[50] }}>{selectedTab === 'expense' && isMonthlySummaryExpanded ? '누적' : summaryMonthLabel}</Text> 소비금액
-                </Text>
-
-                <Pressable
-                  onPress={() => setIsMonthlySummaryExpanded((v) => !v)}
-                  accessibilityRole="button"
-                  accessibilityLabel="monthly-summary-toggle"
-                  style={{ width: 24, height: 24, alignItems: 'center', justifyContent: 'center' }}
-                >
-                  {isMonthlySummaryExpanded ? (
-                    <UpIcon width={20} height={20} />
-                  ) : (
-                    <DownIcon width={20} height={20} />
-                  )}
-                </Pressable>
-              </View>
-
-              {!isMonthlySummaryExpanded ? (
-                isSummaryLoading ? (
-                  <ActivityIndicator size="small" color={colors.primary[50]} style={{ marginTop: 12 }} />
-                ) : (
-                <Text
-                  style={{
-                    marginTop: 12,
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.h1Bold,
-                    color: colors.coolNeutral[90],
-                  }}
-                >
-                  {summaryTotalAmountLabel}
-                </Text>
-                )
-              ) : (
-                <View style={{ marginTop: 16, gap: 12 }}>
-                  {selectedTab === 'expense' && summaryPeriodLabel ? (
-                    <>
-                      <View
-                        style={{
-                          height: 1,
-                          backgroundColor: colors.coolNeutral[30],
-                          opacity: 0.6,
-                        }}
-                      />
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body3Medium,
-                          color: colors.coolNeutral[50],
-                        }}
-                      >
-                        <Text style={{ color: colors.primary[50] }}>
-                          {summary?.period?.startDate ? `${summary.period.startDate.split('-')[0]}년 ${String(Number(summary.period.startDate.split('-')[1]))}월` : ''}
-                        </Text>
-                        {'부터 사용한 금액이에요.'}
-                      </Text>
-                    </>
-                  ) : (
-                    <>
-                      <View
-                        style={{
-                          height: 1,
-                          backgroundColor: colors.coolNeutral[30],
-                          opacity: 0.6,
-                        }}
-                      />
-
-                      {summaryDifferenceLabel && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Medium,
-                            color: colors.coolNeutral[50],
-                          }}
-                        >
-                          전월대비
-                        </Text>
-                        {summary?.totalAmount?.comparison?.difference != null && summary.totalAmount.comparison.difference > 0 ? (
-                          <UpGraphIcon width={12} height={12} />
-                        ) : summary?.totalAmount?.comparison?.difference != null && summary.totalAmount.comparison.difference < 0 ? (
-                          <RGraphIcon width={12} height={12} />
-                        ) : (
-                          <GGraphIcon width={12} height={12} />
-                        )}
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Semibold,
-                            color: summary?.totalAmount?.comparison?.difference != null && summary.totalAmount.comparison.difference > 0
-                              ? colors.primary[50]
-                              : summary?.totalAmount?.comparison?.difference != null && summary.totalAmount.comparison.difference < 0
-                                ? colors.red[40]
-                                : colors.coolNeutral[40],
-                          }}
-                        >
-                          {summaryDifferenceLabel}
-                        </Text>
-                      </View>
-                      )}
-                    </>
-                  )}
-
-                  <View style={{ gap: 8 }}>
-                    {summaryCategoryItems.map((item) => (
-                      <View
-                        key={item.label}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.coolNeutral[90],
-                          }}
-                        >
-                          {item.label}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.coolNeutral[90],
-                          }}
-                        >
-                          {item.value}
-                        </Text>
-                      </View>
-                    ))}
-                  </View>
-
-                  <View
-                    style={{
-                      height: 2,
-                      backgroundColor: colors.coolNeutral[70],
-                      opacity: 0.9,
-                    }}
-                  />
-
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      // alignItems: 'baseline',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Bold,
-                        color: colors.coolNeutral[90],
-                      }}
-                    >
-                      전체금액
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.h2Bold,
-                        color: colors.coolNeutral[90],
-                      }}
-                    >
-                      {summaryTotalAmountLabel}
-                    </Text>
-                  </View>
-                </View>
-              )}
-
-              <View style={{ marginTop: 24 }}>
-                <MainButton
-                  label="지출내역 추가하기"
-                  alwaysPrimary
-                  onPress={openCarSelect}
-                  containerStyle={{ width: '100%' }}
-                />
-              </View>
-            </View>
-            </View>
-          </View>
-          </View>
+          <CoinHeaderSummarySection
+            tabs={tabs}
+            selectedTab={selectedTab}
+            onTabChange={setSelectedTab}
+            isMonthlySummaryExpanded={isMonthlySummaryExpanded}
+            onToggleMonthlySummary={() => setIsMonthlySummaryExpanded((v) => !v)}
+            isSummaryLoading={isSummaryLoading}
+            summaryMonthLabel={summaryMonthLabel}
+            summaryTotalAmountLabel={summaryTotalAmountLabel}
+            summaryPeriodLabel={summaryPeriodLabel}
+            summaryStartYearMonthLabel={summaryStartYearMonthLabel}
+            summaryDifferenceLabel={summaryDifferenceLabel}
+            summaryDifferenceValue={summary?.totalAmount?.comparison?.difference ?? null}
+            summaryCategoryItems={summaryCategoryItems}
+            onBack={() => router.back()}
+            onAddExpense={openCarSelect}
+          />
 
           {/* 캘린더 */}
           {selectedTab === 'calendar' && (
@@ -1895,56 +1655,20 @@ export default function CoinScreen() {
         </View>
       </ScrollView>
 
-      {/* 플로팅 지출 추가 버튼 (캘린더 날짜 선택 + 지출내역 없음일 때만 숨김) */}
-      {!(selectedTab === 'calendar' && isDaySelected && calendarExpenseItems.length === 0) && (
-        <Pressable
-          onPress={
-            selectedTab === 'calendar' && isDaySelected
-              ? () => openAddExpenseWithDate(selectedDateString)
-              : openCarSelect
-          }
-          accessibilityRole="button"
-          accessibilityLabel="지출내역 추가"
-          style={{
-            position: 'absolute',
-            right: 20,
-            bottom: 100,
-            zIndex: 100,
-            // 그림자 (iOS)
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.18,
-            shadowRadius: 8,
-            // 그림자 (Android)
-            elevation: 6,
-          }}
-        >
-          <BPlusIcon width={56} height={56} />
-        </Pressable>
-      )}
-
-      {/* 하단 네비게이션 영역은 흰 배경으로 가로 꽉 채움(좌우 빈공간 방지) */}
-      <View style={{ width: '100%', backgroundColor: colors.coolNeutral[10] }}>
-        <View style={{  }}>
-          <NavigationBar
-            active="coin"
-            showBorder
-            onPress={(tab) => router.push(getTabRoute(tab))}
-          />
-        </View>
-      </View>
-
-      {/* 지출 추가 완료 토스트 */}
-      <Toast
-        visible={isExpenseToastVisible}
-        message="지출내역이 추가되었어요!"
-        actionLabel="보러가기"
-        onAction={() => {
+      <CoinBottomSection
+        selectedTab={selectedTab}
+        isDaySelected={isDaySelected}
+        calendarExpenseItemsLength={calendarExpenseItems.length}
+        selectedDateString={selectedDateString}
+        isExpenseToastVisible={isExpenseToastVisible}
+        onOpenAddExpenseWithDate={openAddExpenseWithDate}
+        onOpenCarSelect={openCarSelect}
+        onNavigateTab={(tab) => router.push(getTabRoute(tab))}
+        onToastGoToExpense={() => {
           setSelectedTab('expense');
           setSelectedCategory('ALL');
         }}
-        onDismiss={() => setIsExpenseToastVisible(false)}
-        duration={5000}
+        onDismissToast={() => setIsExpenseToastVisible(false)}
       />
     </SafeAreaView>
   );
