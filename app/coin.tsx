@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Modal,
   Platform,
   Pressable,
   ScrollView,
@@ -22,6 +21,8 @@ import { MainButton } from '@/components/common/Button/MainButton';
 import CategoryTab from '@/components/common/Category/CategoryTab';
 import type { CategoryKey } from '@/constants/categories';
 import { CarSelectModal } from '@/components/coin/modals/CarSelectModal';
+import { DatePickerModal } from '@/components/coin/modals/DatePickerModal';
+import { ExpenseDetailModal } from '@/components/coin/modals/ExpenseDetailModal';
 import { ExpenseFormModal } from '@/components/coin/modals/ExpenseFormModal';
 import { useAuthStore } from '@/stores/authStore';
 import { useExpenseStore } from '@/stores/expenseStore';
@@ -51,10 +52,7 @@ import GGraphIcon from '@/assets/icons/ggraph.svg';
 import LeftIcon from '@/assets/icons/LeftIcon.svg';
 import RightIcon from '@/assets/icons/RightIcon.svg';
 import GRightIcon from '@/assets/icons/GRightIcon.svg';
-import XIcon from '@/assets/icons/x_icon.svg';
 import GCarIcon from '@/assets/icons/gcar.svg';
-import PencilIcon from '@/assets/icons/pencil.svg';
-import BCarIcon from '@/assets/icons/bcar.svg';
 import BPlusIcon from '@/assets/icons/bplus.svg';
 import OilingIcon from '@/assets/icons/oiling.svg';
 import ParkingIcon from '@/assets/icons/parking.svg';
@@ -67,9 +65,6 @@ import ExpendablesIcon from '@/assets/icons/expendables.svg';
 
 const SCREEN_MAX_WIDTH = 375;
 const CALENDAR_HORIZONTAL_PADDING = 20; // 캘린더 컨테이너 좌우 패딩
-const DATE_WHEEL_ITEM_HEIGHT = 44;
-const DATE_WHEEL_HEIGHT = 220;
-const DATE_WHEEL_PADDING = (DATE_WHEEL_HEIGHT - DATE_WHEEL_ITEM_HEIGHT) / 2;
 const DATE_PICKER_YEARS: number[] = [2024, 2025, 2026, 2027, 2028];
 
 type ExpenseLevel = 0 | 1 | 2 | 3;
@@ -743,323 +738,30 @@ export default function CoinScreen() {
       edges={['top']}
       style={{ flex: 1, backgroundColor: colors.background.default }}
     >
-      {/* 지출 상세 모달 */}
-      <Modal
+      <ExpenseDetailModal
         visible={isDetailModalVisible}
-        transparent
-        animationType="fade"
-        onRequestClose={() => setIsDetailModalVisible(false)}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'center', alignItems: 'center' }}>
-          <View
-            style={{
-              width: 355,
-              backgroundColor: colors.coolNeutral[10],
-              borderRadius: 20,
-              padding: 20,
-              gap: 20,
-            }}
-          >
-            {detailExpense && (() => {
-              const car = detailExpense.memberCar;
-              const carLabel = [car?.brandName, car?.modelName, car?.variant].filter(Boolean).join(' ');
-              const matchedCar = myCars.find((c) => c.id === car?.id);
-              const regNumber = matchedCar?.registrationNumber;
-              const dateFormatted = detailExpense.expenseDate.replace(/-/g, '. ');
-
-              return (
-                <>
-                  {/* 헤더 + 구분선 */}
-                  <View style={{ gap: 4 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.primary[50],
-                          }}
-                        >
-                          {dateFormatted}
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.coolNeutral[80],
-                          }}
-                        >
-                          지출내역
-                        </Text>
-                      </View>
-                      <Pressable
-                        onPress={() => {
-                          if (!detailExpense) return;
-                          // 상세 모달 닫기
-                          setIsDetailModalVisible(false);
-                          // 폼에 기존 데이터 채워넣기
-                          const exp = detailExpense;
-                          const [y, m, d] = exp.expenseDate.split('-').map(Number);
-                          setAddDate(formatKoreanDateLabel(y, m, d));
-                          setPickedYear(y);
-                          setPickedMonth(m);
-                          setPickedDay(d);
-                          setAddAmount(exp.amount.toLocaleString('ko-KR'));
-                          setAddPlace(exp.location || '');
-                          setAddMemo(exp.memo || '');
-                          setAddCategory(exp.category);
-                          setEditingExpenseId(exp.id);
-                          // 차량 매칭
-                          const matched = myCars.find((c) => c.id === exp.memberCar?.id);
-                          if (matched) {
-                            setSelectedCar(matched);
-                          }
-                          // 수정 폼 열기
-                          openAddExpenseModal();
-                        }}
-                        accessibilityRole="button"
-                        accessibilityLabel="edit-expense"
-                        hitSlop={8}
-                      >
-                        <PencilIcon width={22} height={22} />
-                      </Pressable>
-                    </View>
-
-                    {/* 구분선 */}
-                    <View style={{ height: 22, borderBottomWidth: 1, borderColor: colors.coolNeutral[30] }} />
-                  </View> 
-
-                  {/* 차량 정보 바 */}
-                  {carLabel && (
-                    <View
-                      style={{
-                        backgroundColor: colors.primary[10],
-                        borderRadius: 12,
-                        paddingVertical: 8,
-                        paddingHorizontal: 12,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: 12,
-                      }}
-                    >
-                      <BCarIcon width={20} height={20} />
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body3Semibold,
-                          color: colors.primary[50],
-                        }}
-                      >
-                        {carLabel}
-                      </Text>
-                      {regNumber && (
-                        <>
-                          <View
-                            style={{
-                              width: 1.4,
-                              height: 17,
-                              backgroundColor: colors.primary[50],
-                            }}
-                          />
-                          <Text
-                            style={{
-                              fontFamily: typography.fontFamily.pretendard,
-                              ...typography.styles.body3Semibold,
-                              color: colors.primary[50],
-                            }}
-                          >
-                            {regNumber}
-                          </Text>
-                        </>
-                      )}
-                    </View>
-                  )}
-
-                  {/* 상세 정보 + 굵은 구분선 */}
-                  <View>
-                    <View style={{ gap: 8 }}>
-                      {/* 메모 + 구분선 */}
-                      <View>
-                        <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
-                          <Text
-                            style={{
-                              fontFamily: typography.fontFamily.pretendard,
-                              ...typography.styles.body3Medium,
-                              color: colors.coolNeutral[80],
-                            }}
-                          >
-                            메모
-                          </Text>
-                          <Text
-                            numberOfLines={2}
-                            style={{
-                              flex: 1,
-                              fontFamily: typography.fontFamily.pretendard,
-                              ...typography.styles.body3Medium,
-                              color: colors.coolNeutral[50],
-                              textAlign: 'right',
-                            }}
-                          >
-                            {detailExpense.memo || '-'}
-                          </Text>
-                        </View>
-                        <View style={{ height: 20, borderBottomWidth: 1, borderColor: colors.coolNeutral[30] }} />
-                      </View>
-
-                      {/* 장소 */}
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 16 }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Medium,
-                            color: colors.coolNeutral[80],
-                          }}
-                        >
-                          장소
-                        </Text>
-                        <Text
-                          numberOfLines={1}
-                          style={{
-                            flex: 1,
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Semibold,
-                            color: colors.coolNeutral[50],
-                            textAlign: 'right',
-                          }}
-                        >
-                          {detailExpense.location || '-'}
-                        </Text>
-                      </View>
-
-                      {/* 카테고리 */}
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Medium,
-                            color: colors.coolNeutral[80],
-                          }}
-                        >
-                          카테고리
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Semibold,
-                            color: colors.coolNeutral[50],
-                          }}
-                        >
-                          {detailExpense.categoryLabel}
-                        </Text>
-                      </View>
-
-                      {/* 가격 */}
-                      <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Medium,
-                            color: colors.coolNeutral[80],
-                          }}
-                        >
-                          가격
-                        </Text>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Semibold,
-                            color: colors.coolNeutral[50],
-                          }}
-                        >
-                          {detailExpense.amount.toLocaleString('ko-KR')}원
-                        </Text>
-                      </View>
-                    </View>
-
-                  </View>
-
-                  {/* 굵은 구분선 + 전체금액 */}
-                  <View style={{ gap: 12 }}>
-                    <View style={{ height: 2, backgroundColor: colors.coolNeutral[80] }} />
-                    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.h2Bold,
-                          color: colors.coolNeutral[70],
-                        }}
-                      >
-                        전체금액
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.h2Bold,
-                          color: colors.primary[50],
-                        }}
-                      >
-                        {detailExpense.amount.toLocaleString('ko-KR')} 원
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* 버튼 */}
-                  <View style={{ flexDirection: 'row', gap: 12, marginTop: 6 }}>
-                    <Pressable
-                      onPress={() => setIsDetailModalVisible(false)}
-                      style={{
-                        flex: 1,
-                        height: 48,
-                        borderRadius: 12,
-                        backgroundColor: colors.coolNeutral[20],
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel="detail-cancel"
-                    >
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body1Bold,
-                          color: colors.coolNeutral[40],
-                        }}
-                      >
-                        취소
-                      </Text>
-                    </Pressable>
-
-                    <Pressable
-                      onPress={() => setIsDetailModalVisible(false)}
-                      style={{
-                        flex: 1,
-                        height: 48,
-                        borderRadius: 12,
-                        backgroundColor: colors.primary[50],
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                      accessibilityRole="button"
-                      accessibilityLabel="detail-confirm"
-                    >
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body1Bold,
-                          color: colors.coolNeutral[10],
-                        }}
-                      >
-                        확인
-                      </Text>
-                    </Pressable>
-                  </View>
-                </>
-              );
-            })()}
-          </View>
-        </View>
-      </Modal>
+        detailExpense={detailExpense}
+        myCars={myCars}
+        onClose={() => setIsDetailModalVisible(false)}
+        onEdit={(expense) => {
+          setIsDetailModalVisible(false);
+          const [y, m, d] = expense.expenseDate.split('-').map(Number);
+          setAddDate(formatKoreanDateLabel(y, m, d));
+          setPickedYear(y);
+          setPickedMonth(m);
+          setPickedDay(d);
+          setAddAmount(expense.amount.toLocaleString('ko-KR'));
+          setAddPlace(expense.location || '');
+          setAddMemo(expense.memo || '');
+          setAddCategory(expense.category);
+          setEditingExpenseId(expense.id);
+          const matched = myCars.find((c) => c.id === expense.memberCar?.id);
+          if (matched) {
+            setSelectedCar(matched);
+          }
+          openAddExpenseModal();
+        }}
+      />
 
       <CarSelectModal
         visible={isCarSelectOpen}
@@ -1096,279 +798,22 @@ export default function CoinScreen() {
         onSubmit={handleSubmitExpense}
       />
 
-      {/* 날짜 선택 모달 (지출 추가 모달 위로 뜨도록 뒤에서 렌더) */}
-      <Modal
+      <DatePickerModal
         visible={isDatePickerOpen}
-        transparent
-        animationType="fade"
-        onRequestClose={closeDatePicker}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'flex-end' }}>
-          {/* backdrop */}
-          <Pressable
-            onPress={closeDatePicker}
-            style={{ position: 'absolute', top: 0, right: 0, bottom: 0, left: 0 }}
-            accessibilityRole="button"
-            accessibilityLabel="dismiss-date-picker"
-          />
-
-          <View
-            style={{
-              width: '100%',
-              backgroundColor: colors.background.default,
-              borderTopLeftRadius: 24,
-              borderTopRightRadius: 24,
-              paddingTop: 18,
-              paddingBottom: 24,
-              paddingHorizontal: 20,
-              gap: 16,
-            }}
-          >
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Text
-                style={{
-                  fontFamily: typography.fontFamily.pretendard,
-                  ...typography.styles.body1Semibold,
-                  color: colors.coolNeutral[80],
-                }}
-              >
-                날짜 선택
-              </Text>
-              <Pressable
-                onPress={closeDatePicker}
-                accessibilityRole="button"
-                accessibilityLabel="close-date-picker"
-                style={{ alignItems: 'center', justifyContent: 'center' }}
-              >
-                <XIcon width={24} height={24} />
-              </Pressable>
-            </View>
-
-            <View
-              style={{ gap: 24 }}
-            >
-              <View
-                style={{
-                  width: '100%',
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: colors.coolNeutral[10],
-                  borderWidth: 1,
-                  borderColor: colors.coolNeutral[20],
-                  paddingVertical: 16,
-                  paddingHorizontal: 12,
-                }}
-              >
-                <View style={{ flexDirection: 'row', gap: 12 }}>
-                  {/* Year */}
-                  <View style={{ flex: 1 }}>
-                    <FlatList
-                      ref={(r) => {
-                        yearListRef.current = r;
-                      }}
-                      data={DATE_PICKER_YEARS}
-                      keyExtractor={(item) => `y-${item}`}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={DATE_WHEEL_ITEM_HEIGHT}
-                      decelerationRate="fast"
-                      contentContainerStyle={{ paddingVertical: DATE_WHEEL_PADDING }}
-                      getItemLayout={(_, index) => ({
-                        length: DATE_WHEEL_ITEM_HEIGHT,
-                        offset: DATE_WHEEL_ITEM_HEIGHT * index,
-                        index,
-                      })}
-                      style={{ height: DATE_WHEEL_HEIGHT }}
-                      onMomentumScrollEnd={(e) => {
-                        const idx = Math.round(e.nativeEvent.contentOffset.y / DATE_WHEEL_ITEM_HEIGHT);
-                        const y = DATE_PICKER_YEARS[idx] ?? pickedYear;
-                        setPickedYear(y);
-                        const maxDay = new Date(y, pickedMonth, 0).getDate();
-                        setPickedDay((d) => Math.min(d, maxDay));
-                      }}
-                      renderItem={({ item, index }) => {
-                        const selected = item === pickedYear;
-                        return (
-                          <Pressable
-                            onPress={() => {
-                              setPickedYear(item);
-                              yearListRef.current?.scrollToIndex({ index, animated: true });
-                              const maxDay = new Date(item, pickedMonth, 0).getDate();
-                              setPickedDay((d) => Math.min(d, maxDay));
-                            }}
-                            style={{
-                              height: DATE_WHEEL_ITEM_HEIGHT,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body1Bold,
-                                color: selected ? colors.primary[50] : colors.coolNeutral[40],
-                              }}
-                            >
-                              {item}년
-                            </Text>
-                          </Pressable>
-                        );
-                      }}
-                    />
-                  </View>
-
-                  {/* Month */}
-                  <View style={{ flex: 1 }}>
-                    <FlatList
-                      ref={(r) => {
-                        monthListRef.current = r;
-                      }}
-                      data={Array.from({ length: 12 }, (_, i) => i + 1)}
-                      keyExtractor={(item) => `m-${item}`}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={DATE_WHEEL_ITEM_HEIGHT}
-                      decelerationRate="fast"
-                      contentContainerStyle={{ paddingVertical: DATE_WHEEL_PADDING }}
-                      getItemLayout={(_, index) => ({
-                        length: DATE_WHEEL_ITEM_HEIGHT,
-                        offset: DATE_WHEEL_ITEM_HEIGHT * index,
-                        index,
-                      })}
-                      style={{ height: DATE_WHEEL_HEIGHT }}
-                      onMomentumScrollEnd={(e) => {
-                        const idx = Math.round(e.nativeEvent.contentOffset.y / DATE_WHEEL_ITEM_HEIGHT);
-                        const mo = idx + 1;
-                        setPickedMonth(mo);
-                        const maxDay = new Date(pickedYear, mo, 0).getDate();
-                        setPickedDay((d) => Math.min(d, maxDay));
-                      }}
-                      renderItem={({ item, index }) => {
-                        const selected = item === pickedMonth;
-                        return (
-                          <Pressable
-                            onPress={() => {
-                              setPickedMonth(item);
-                              monthListRef.current?.scrollToIndex({ index, animated: true });
-                              const maxDay = new Date(pickedYear, item, 0).getDate();
-                              setPickedDay((d) => Math.min(d, maxDay));
-                            }}
-                            style={{
-                              height: DATE_WHEEL_ITEM_HEIGHT,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body1Bold,
-                                color: selected ? colors.primary[50] : colors.coolNeutral[40],
-                              }}
-                            >
-                              {item}월
-                            </Text>
-                          </Pressable>
-                        );
-                      }}
-                    />
-                  </View>
-
-                  {/* Day */}
-                  <View style={{ flex: 1 }}>
-                    <FlatList
-                      ref={(r) => {
-                        dayListRef.current = r;
-                      }}
-                      data={Array.from({ length: dayCountInPickedMonth }, (_, i) => i + 1)}
-                      keyExtractor={(item) => `d-${item}`}
-                      showsVerticalScrollIndicator={false}
-                      snapToInterval={DATE_WHEEL_ITEM_HEIGHT}
-                      decelerationRate="fast"
-                      contentContainerStyle={{ paddingVertical: DATE_WHEEL_PADDING }}
-                      getItemLayout={(_, index) => ({
-                        length: DATE_WHEEL_ITEM_HEIGHT,
-                        offset: DATE_WHEEL_ITEM_HEIGHT * index,
-                        index,
-                      })}
-                      style={{ height: DATE_WHEEL_HEIGHT }}
-                      onMomentumScrollEnd={(e) => {
-                        const idx = Math.round(e.nativeEvent.contentOffset.y / DATE_WHEEL_ITEM_HEIGHT);
-                        setPickedDay(idx + 1);
-                      }}
-                      renderItem={({ item, index }) => {
-                        const selected = item === pickedDay;
-                        return (
-                          <Pressable
-                            onPress={() => {
-                              setPickedDay(item);
-                              dayListRef.current?.scrollToIndex({ index, animated: true });
-                            }}
-                            style={{
-                              height: DATE_WHEEL_ITEM_HEIGHT,
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body1Bold,
-                                color: selected ? colors.primary[50] : colors.coolNeutral[40],
-                              }}
-                            >
-                              {item}일
-                            </Text>
-                          </Pressable>
-                        );
-                      }}
-                    />
-                  </View>
-                </View>
-
-                {/* center highlight */}
-                <View
-                  pointerEvents="none"
-                  style={{
-                    position: 'absolute',
-                    left: 12,
-                    right: 12,
-                    top: 16 + DATE_WHEEL_PADDING,
-                    height: DATE_WHEEL_ITEM_HEIGHT,
-                    borderRadius: borderRadius.md,
-                    borderWidth: 1,
-                    borderColor: colors.coolNeutral[20],
-                  }}
-                />
-              </View>
-
-              <Pressable
-                onPress={() => {
-                  setAddDate(pickedDateLabel);
-                  closeDatePicker();
-                }}
-                style={{
-                  width: '100%',
-                  height: 56,
-                  borderRadius: borderRadius.md,
-                  backgroundColor: colors.primary[50],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="confirm-date-picker"
-              >
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.body2Semibold,
-                    color: colors.coolNeutral[10],
-                  }}
-                >
-                  {pickedDateLabel} 선택
-                </Text>
-              </Pressable>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        closeDatePicker={closeDatePicker}
+        pickedDateLabel={pickedDateLabel}
+        pickedYear={pickedYear}
+        pickedMonth={pickedMonth}
+        pickedDay={pickedDay}
+        dayCountInPickedMonth={dayCountInPickedMonth}
+        setPickedYear={setPickedYear}
+        setPickedMonth={setPickedMonth}
+        setPickedDay={setPickedDay}
+        setAddDate={setAddDate}
+        yearListRef={yearListRef}
+        monthListRef={monthListRef}
+        dayListRef={dayListRef}
+      />
 
       <ScrollView
         style={{ flex: 1, width: '100%' }}
