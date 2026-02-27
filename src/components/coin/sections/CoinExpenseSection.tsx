@@ -1,28 +1,11 @@
 import { ActivityIndicator, Pressable, Text, View } from 'react-native';
-import { borderRadius, colors, typography } from '@/theme';
+import { colors, typography } from '@/theme';
 import CategoryTab from '@/components/common/Category/CategoryTab';
 import type { CategoryKey } from '@/constants/categories';
-import GRightIcon from '@/assets/icons/GRightIcon.svg';
-import GCarIcon from '@/assets/icons/gcar.svg';
 import DownIcon from '@/assets/icons/DownIcon.svg';
 import UpIcon from '@/assets/icons/UpIcon.svg';
-import OilingIcon from '@/assets/icons/oiling.svg';
-import ParkingIcon from '@/assets/icons/parking.svg';
-import InsuranceIcon from '@/assets/icons/insurance.svg';
-import TollIcon from '@/assets/icons/toll.svg';
-import MaintenanceIcon from '@/assets/icons/maintenance.svg';
-import CarwashIcon from '@/assets/icons/carwash.svg';
-import ExpendablesIcon from '@/assets/icons/expendables.svg';
-
-type ExpenseItem = {
-  id: string;
-  category: Exclude<CategoryKey, 'ALL'>;
-  title: string;
-  note?: string;
-  date: string;
-  amount: number;
-  carInfo?: string;
-};
+import { ExpenseListItem } from '@/components/coin/common/ExpenseListItem';
+import type { CoinExpenseItem } from '@/components/coin/types';
 
 interface CoinExpenseSectionProps {
   selectedCategory: CategoryKey;
@@ -37,22 +20,12 @@ interface CoinExpenseSectionProps {
   totalCount: number;
   isLoading: boolean;
   error: string | null;
-  expenseItems: ExpenseItem[];
-  displayedExpenseItems: ExpenseItem[];
+  expenseItems: CoinExpenseItem[];
+  displayedExpenseItems: CoinExpenseItem[];
   onExpensePress: (id: string) => void;
   isExpenseListExpanded: boolean;
   onToggleExpenseList: () => void;
 }
-
-const CATEGORY_LABEL_MAP: Record<Exclude<CategoryKey, 'ALL'>, string> = {
-  FUEL: '주유비',
-  PARKING: '주차비',
-  REPAIR: '정비·수리비',
-  TOLL: '통행료',
-  CAR_WASH: '세차비',
-  INSURANCE: '보험료',
-  ACCESSORY: '자동차 용품비',
-};
 
 export function CoinExpenseSection({
   selectedCategory,
@@ -132,146 +105,12 @@ export function CoinExpenseSection({
           displayedExpenseItems.map((item, idx) => {
             const isLast = idx === displayedExpenseItems.length - 1;
             return (
-              <Pressable
-                key={item.id}
-                onPress={() => onExpensePress(item.id)}
-                accessibilityRole="button"
-                accessibilityLabel={`expense-${item.id}`}
-                style={{
-                  paddingHorizontal: 20,
-                  paddingVertical: 16,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 12,
-                  ...(isLast
-                    ? {}
-                    : {
-                        borderBottomWidth: 1,
-                        borderBottomColor: colors.coolNeutral[30],
-                      }),
-                }}
-              >
-                <View
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: borderRadius.full,
-                    backgroundColor: colors.background.default,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {item.category === 'FUEL' && <OilingIcon width={24} height={24} />}
-                  {item.category === 'PARKING' && <ParkingIcon width={24} height={24} />}
-                  {item.category === 'INSURANCE' && <InsuranceIcon width={24} height={24} />}
-                  {item.category === 'TOLL' && <TollIcon width={24} height={24} />}
-                  {item.category === 'REPAIR' && <MaintenanceIcon width={24} height={24} />}
-                  {item.category === 'CAR_WASH' && <CarwashIcon width={24} height={24} />}
-                  {item.category === 'ACCESSORY' && <ExpendablesIcon width={24} height={24} />}
-                </View>
-
-                <View style={{ flex: 1, gap: 6 }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                    }}
-                  >
-                    <Text
-                      numberOfLines={1}
-                      style={{
-                        flex: 1,
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Semibold,
-                        color: colors.coolNeutral[90],
-                      }}
-                    >
-                      {item.title}
-                    </Text>
-
-                    <GRightIcon width={24} height={24} />
-                  </View>
-
-                  <View style={{ gap: 4 }}>
-                    {item.carInfo && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                        <GCarIcon width={14} height={14} />
-                        <Text
-                          numberOfLines={1}
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.captionSemibold,
-                            color: colors.coolNeutral[40],
-                          }}
-                        >
-                          {item.carInfo}
-                        </Text>
-                      </View>
-                    )}
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      {item.note ? (
-                        <Text
-                          numberOfLines={1}
-                          style={{
-                            flex: 1,
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.captionMedium,
-                            color: colors.primary[30],
-                          }}
-                        >
-                          {item.note}
-                        </Text>
-                      ) : (
-                        <View style={{ flex: 1 }} />
-                      )}
-
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body2Bold,
-                          color: colors.primary[50],
-                        }}
-                      >
-                        {item.amount.toLocaleString('ko-KR')}원
-                      </Text>
-                    </View>
-
-                    <View
-                      style={{
-                        flexDirection: 'row',
-                        alignItems: 'flex-end',
-                        justifyContent: 'space-between',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.captionMedium,
-                          color: colors.coolNeutral[40],
-                        }}
-                      >
-                        {CATEGORY_LABEL_MAP[item.category]}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.captionMedium,
-                          color: colors.coolNeutral[40],
-                        }}
-                      >
-                        {item.date}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-              </Pressable>
+              <ExpenseListItem
+                item={item}
+                isLast={isLast}
+                accessibilityLabelPrefix="expense"
+                onPress={onExpensePress}
+              />
             );
           })
         )}

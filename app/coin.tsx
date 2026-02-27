@@ -30,6 +30,7 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useMyCarStore } from '@/stores/myCarStore';
 import type { Expense, ExpenseCategory } from '@/types/expense';
 import type { PrimaryCar } from '@/types/profile';
+import type { CoinExpenseItem } from '@/components/coin/types';
 import { useCoinExpenseData } from '@/hooks/coin/useCoinExpenseData';
 import { useCoinExpenseSubmit } from '@/hooks/coin/useCoinExpenseSubmit';
 import { getTabRoute } from '@/utils/navigation';
@@ -41,22 +42,6 @@ import {
 } from '@/utils/date';
 
 import { performOcr } from '@/services/ocrService';
-
-import DownIcon from '@/assets/icons/DownIcon.svg';
-import UpIcon from '@/assets/icons/UpIcon.svg';
-import LeftIcon from '@/assets/icons/LeftIcon.svg';
-import RightIcon from '@/assets/icons/RightIcon.svg';
-import GRightIcon from '@/assets/icons/GRightIcon.svg';
-import GCarIcon from '@/assets/icons/gcar.svg';
-import BPlusIcon from '@/assets/icons/bplus.svg';
-import OilingIcon from '@/assets/icons/oiling.svg';
-import ParkingIcon from '@/assets/icons/parking.svg';
-import InsuranceIcon from '@/assets/icons/insurance.svg';
-import TollIcon from '@/assets/icons/toll.svg';
-import MaintenanceIcon from '@/assets/icons/maintenance.svg';
-import CarwashIcon from '@/assets/icons/carwash.svg';
-import ExpendablesIcon from '@/assets/icons/expendables.svg';
-
 
 const SCREEN_MAX_WIDTH = 375;
 const CALENDAR_HORIZONTAL_PADDING = 20; // 캘린더 컨테이너 좌우 패딩
@@ -73,16 +58,6 @@ type CalendarCell = {
 };
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
-
-type ExpenseItem = {
-  id: string;
-  category: Exclude<CategoryKey, 'ALL'>;
-  title: string;
-  note?: string;
-  date: string; // YYYY-MM-DD
-  amount: number; // won
-  carInfo?: string; // e.g. "렉서스 ES300h"
-};
 
 const KST_WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'] as const;
 const KST_OFFSET_MS = 9 * 60 * 60 * 1000;
@@ -561,7 +536,7 @@ export default function CoinScreen() {
   };
 
   // API 데이터를 UI 형식으로 변환
-  const expenseItems = useMemo<ExpenseItem[]>(() => {
+  const expenseItems = useMemo<CoinExpenseItem[]>(() => {
     return expenses.map((expense) => {
       const car = expense.memberCar;
       const carParts = [car?.brandName, car?.modelName, car?.variant].filter(Boolean);
@@ -594,13 +569,13 @@ export default function CoinScreen() {
   }, [currentYear, currentMonthIndex, selectedDay]);
 
   // 해당 달의 모든 지출
-  const calendarMonthExpenseItems = useMemo<ExpenseItem[]>(() => {
+  const calendarMonthExpenseItems = useMemo<CoinExpenseItem[]>(() => {
     const prefix = toYearMonth(currentYear, currentMonthIndex + 1);
     return expenseItems.filter((item) => item.date.startsWith(prefix));
   }, [expenseItems, currentYear, currentMonthIndex]);
 
   // 선택한 날짜의 지출
-  const calendarDayExpenseItems = useMemo<ExpenseItem[]>(() => {
+  const calendarDayExpenseItems = useMemo<CoinExpenseItem[]>(() => {
     return expenseItems.filter((item) => item.date === selectedDateString);
   }, [expenseItems, selectedDateString]);
 
