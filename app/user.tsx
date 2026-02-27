@@ -2,10 +2,11 @@ import React from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
-import { borderRadius, colors, typography } from '@/theme';
+import { colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { USER_MENU_ITEMS, type UserMenuKey } from '@/components/user/constants/menuItems';
 import { ProfileEditModal } from '@/components/user/modals/ProfileEditModal';
+import { UserProfileSummarySection } from '@/components/user/sections/UserProfileSummarySection';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserDashboardData } from '@/hooks/user/useUserDashboardData';
 import { useUserProfileEdit } from '@/hooks/user/useUserProfileEdit';
@@ -16,9 +17,7 @@ import { useMyCarStore } from '@/stores/myCarStore';
 import { getTabRoute } from '@/utils/navigation';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
-import PencilIcon from '@/assets/icons/pencil.svg';
 import GRightIcon from '@/assets/icons/GRightIcon.svg';
-import PointIcon from '@/assets/icons/point.svg';
 
 export default function UserScreen() {
   const router = useRouter();
@@ -140,171 +139,14 @@ export default function UserScreen() {
               </Text>
             </View>
 
-            {/* 프로필 카드 */}
-            <View style={{ paddingHorizontal: 20 }}>
-              <View
-                style={{
-                  width: '100%',
-                  borderRadius: borderRadius.lg,
-                  backgroundColor: colors.coolNeutral[10],
-                  paddingTop: 24,
-                  overflow: 'hidden',
-                }}
-              >
-                <View style={{ paddingHorizontal: 20, paddingBottom: 12, gap: 10 }}>
-                  <View
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'flex-start',
-                      justifyContent: 'space-between',
-                      gap: 12,
-                    }}
-                  >
-                    <View style={{ flex: 1, gap: 4 }}>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body1Bold,
-                          color: colors.coolNeutral[90],
-                        }}
-                      >
-                        {profileData.name}
-                      </Text>
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body2Regular,
-                          color: colors.coolNeutral[40],
-                        }}
-                      >
-                        {profileData.email}
-                      </Text>
-                    </View>
-
-                    <Pressable
-                      onPress={handleOpenEditModal}
-                      accessibilityRole="button"
-                      accessibilityLabel="edit-profile"
-                      style={{
-                        width: 28,
-                        height: 28,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <PencilIcon width={20} height={20} />
-                    </Pressable>
-                  </View>
-
-                  <View>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Semibold,
-                        color: colors.primary[50],
-                      }}
-                    >
-                      {profileData.carModel}  {'|'}  {profileData.carNumber}
-                    </Text>
-                  </View>
-                </View>
-
-                {/* 통계 바 */}
-                <View
-                  style={{
-                    width: '100%',
-                    backgroundColor: colors.primary[50],
-                    paddingVertical: 24,
-                    paddingHorizontal: 20,
-                    flexDirection: 'row',
-                    alignItems: 'center',
-                    gap: 12,
-                  }}
-                >
-                  <View style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body1Semibold,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      {dashboard ? `${dashboard.totalDistanceKm.toFixed(1)} km` : '- km'}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Regular,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      총 운행거리
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      width: 1,
-                      height: 63,
-                      backgroundColor: 'rgba(255,255,255,0.4)',
-                    }}
-                  />
-
-                  <View style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                      <PointIcon width={18} height={18} />
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body1Semibold,
-                          color: colors.coolNeutral[10],
-                        }}
-                      >
-                        {dashboard ? `${dashboard.availablePoints.toLocaleString()}` : '-'}
-                      </Text>
-                    </View>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Regular,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      총 적립 포인트
-                    </Text>
-                  </View>
-
-                  <View
-                    style={{
-                      width: 1,
-                      height: 63,
-                      backgroundColor: 'rgba(255,255,255,0.4)',
-                    }}
-                  />
-
-                  <View style={{ flex: 1, alignItems: 'center', gap: 6 }}>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body1Semibold,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      {dashboard ? `${dashboard.totalDrivingRecordCount}` : '-'}
-                    </Text>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Regular,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      총 운행 횟수
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            </View>
+            <UserProfileSummarySection
+              profileName={profileData.name}
+              profileEmail={profileData.email}
+              carModel={profileData.carModel}
+              carNumber={profileData.carNumber}
+              dashboard={dashboard}
+              onPressEdit={handleOpenEditModal}
+            />
           </View>
 
           {/* 아래부터: coolNeutral[10] */}
