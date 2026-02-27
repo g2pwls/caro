@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Alert, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -6,6 +6,7 @@ import { colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { USER_MENU_ITEMS, type UserMenuKey } from '@/components/user/constants/menuItems';
 import { ProfileEditModal } from '@/components/user/modals/ProfileEditModal';
+import { UserMyCarSection } from '@/components/user/sections/UserMyCarSection';
 import { UserProfileSummarySection } from '@/components/user/sections/UserProfileSummarySection';
 import { useAuth } from '@/hooks/useAuth';
 import { useUserDashboardData } from '@/hooks/user/useUserDashboardData';
@@ -20,6 +21,7 @@ import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import GRightIcon from '@/assets/icons/GRightIcon.svg';
 
 export default function UserScreen() {
+  const [currentView, setCurrentView] = useState<'main' | 'my-car'>('main');
   const router = useRouter();
   const { logout, isLoggingOut } = useAuth();
   const accessToken = useAuthStore((state) => state.accessToken);
@@ -88,131 +90,145 @@ export default function UserScreen() {
       return;
     }
     if (menuKey === 'my-car') {
-      router.push('/my-car');
+      setCurrentView('my-car');
       return;
     }
   };
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.background.default }}>
-      <ScrollView
-        style={{ flex: 1, width: '100%' }}
-        contentContainerStyle={{ alignItems: 'stretch' }}
-      >
-        <View
-          style={{
-            width: '100%',
-            backgroundColor: colors.background.default,
-            paddingTop: 12,
-            gap: 43,
-          }}
+    <SafeAreaView
+      edges={['top']}
+      style={{ flex: 1, backgroundColor: currentView === 'my-car' ? colors.coolNeutral[10] : colors.background.default }}
+    >
+      {currentView === 'my-car' ? (
+        <UserMyCarSection
+          accessToken={accessToken}
+          primaryCar={primaryCar}
+          cars={cars}
+          loadProfile={loadProfile}
+          loadMyCars={loadMyCars}
+          onBack={() => setCurrentView('main')}
+        />
+      ) : (
+        <ScrollView
+          style={{ flex: 1, width: '100%' }}
+          contentContainerStyle={{ alignItems: 'stretch' }}
         >
-          {/* 여기까지: background.default */}
-          <View style={{ width: '100%', gap: 23 }}>
-            {/* 헤더 */}
-            <View
-              style={{
-                paddingVertical: 12,
-                paddingHorizontal: 20,
-                flexDirection: 'row',
-                alignItems: 'center',
-                gap: 8,
-              }}
-            >
-              <Pressable
-                onPress={() => router.back()}
-                style={{ width: 24, height: 24, justifyContent: 'center' }}
-                accessibilityRole="button"
-                accessibilityLabel="back"
-              >
-                <ArrowLeftIcon width={24} height={24} />
-              </Pressable>
-
-              <Text
+          <View
+            style={{
+              width: '100%',
+              backgroundColor: colors.background.default,
+              paddingTop: 12,
+              gap: 43,
+            }}
+          >
+            {/* 여기까지: background.default */}
+            <View style={{ width: '100%', gap: 23 }}>
+              {/* 헤더 */}
+              <View
                 style={{
-                  fontFamily: typography.fontFamily.pretendard,
-                  ...typography.styles.h3Semibold,
-                  color: colors.coolNeutral[90],
+                  paddingVertical: 12,
+                  paddingHorizontal: 20,
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 8,
                 }}
               >
-                마이페이지
-              </Text>
+                <Pressable
+                  onPress={() => router.back()}
+                  style={{ width: 24, height: 24, justifyContent: 'center' }}
+                  accessibilityRole="button"
+                  accessibilityLabel="back"
+                >
+                  <ArrowLeftIcon width={24} height={24} />
+                </Pressable>
+
+                <Text
+                  style={{
+                    fontFamily: typography.fontFamily.pretendard,
+                    ...typography.styles.h3Semibold,
+                    color: colors.coolNeutral[90],
+                  }}
+                >
+                  마이페이지
+                </Text>
+              </View>
+
+              <UserProfileSummarySection
+                profileName={profileData.name}
+                profileEmail={profileData.email}
+                carModel={profileData.carModel}
+                carNumber={profileData.carNumber}
+                dashboard={dashboard}
+                onPressEdit={handleOpenEditModal}
+              />
             </View>
 
-            <UserProfileSummarySection
-              profileName={profileData.name}
-              profileEmail={profileData.email}
-              carModel={profileData.carModel}
-              carNumber={profileData.carNumber}
-              dashboard={dashboard}
-              onPressEdit={handleOpenEditModal}
-            />
-          </View>
-
-          {/* 아래부터: coolNeutral[10] */}
-          <View style={{ width: '100%', backgroundColor: colors.coolNeutral[10] }}>
-            <View style={{ width: '100%' }}>
-              <View style={{ paddingVertical: 32, paddingHorizontal: 20 }}>
-                {/* 메뉴 리스트 */}
-                <View>
-                  {USER_MENU_ITEMS.flatMap(({ key, label }, idx, arr) => {
-                    const row = (
-                      <Pressable
-                        key={key}
-                        onPress={() => handleMenuPress(key)}
-                        accessibilityRole="button"
-                        accessibilityLabel={`mypage-${key}`}
-                        style={{
-                          paddingTop: 10,
-                          paddingBottom: 24,
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'space-between',
-                          backgroundColor: colors.coolNeutral[10],
-                        }}
-                      >
-                        <Text
+            {/* 아래부터: coolNeutral[10] */}
+            <View style={{ width: '100%', backgroundColor: colors.coolNeutral[10] }}>
+              <View style={{ width: '100%' }}>
+                <View style={{ paddingVertical: 32, paddingHorizontal: 20 }}>
+                  {/* 메뉴 리스트 */}
+                  <View>
+                    {USER_MENU_ITEMS.flatMap(({ key, label }, idx, arr) => {
+                      const row = (
+                        <Pressable
+                          key={key}
+                          onPress={() => handleMenuPress(key)}
+                          accessibilityRole="button"
+                          accessibilityLabel={`mypage-${key}`}
                           style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body1Semibold,
-                            color: colors.coolNeutral[90],
+                            paddingTop: 10,
+                            paddingBottom: 24,
+                            flexDirection: 'row',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            backgroundColor: colors.coolNeutral[10],
                           }}
                         >
-                          {label}
-                        </Text>
-                        <GRightIcon width={24} height={24} />
-                      </Pressable>
-                    );
+                          <Text
+                            style={{
+                              fontFamily: typography.fontFamily.pretendard,
+                              ...typography.styles.body1Semibold,
+                              color: colors.coolNeutral[90],
+                            }}
+                          >
+                            {label}
+                          </Text>
+                          <GRightIcon width={24} height={24} />
+                        </Pressable>
+                      );
 
-                    if (idx === arr.length - 1) return [row];
+                      if (idx === arr.length - 1) return [row];
 
-                    return [
-                      row,
-                      <View
-                        key={`sep-${key}`}
-                        style={{ width: '100%', height: 1, backgroundColor: colors.coolNeutral[30] }}
-                      />,
-                      <View key={`sep-gap-${key}`} style={{ height: 20 }} />,
-                    ];
-                  })}
-                </View>
+                      return [
+                        row,
+                        <View
+                          key={`sep-${key}`}
+                          style={{ width: '100%', height: 1, backgroundColor: colors.coolNeutral[30] }}
+                        />,
+                        <View key={`sep-gap-${key}`} style={{ height: 20 }} />,
+                      ];
+                    })}
+                  </View>
 
-                <View style={{ alignItems: 'center', paddingTop: 20 }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body3Light,
-                      color: colors.coolNeutral[40],
-                    }}
-                  >
-                    앱 버전 1.0.0
-                  </Text>
+                  <View style={{ alignItems: 'center', paddingTop: 20 }}>
+                    <Text
+                      style={{
+                        fontFamily: typography.fontFamily.pretendard,
+                        ...typography.styles.body3Light,
+                        color: colors.coolNeutral[40],
+                      }}
+                    >
+                      앱 버전 1.0.0
+                    </Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
 
       <View style={{ width: '100%', backgroundColor: colors.coolNeutral[10] }}>
         <NavigationBar
@@ -222,18 +238,20 @@ export default function UserScreen() {
         />
       </View>
 
-      <ProfileEditModal
-        visible={isEditModalVisible}
-        editData={editData}
-        setEditData={setEditData}
-        profileName={profileData.name}
-        profileEmail={profileData.email}
-        cars={cars}
-        isSaving={isSaving}
-        onClose={handleCloseEditModal}
-        onSave={handleSaveProfile}
-        onAddNewVehicle={handleAddNewVehicle}
-      />
+      {currentView === 'main' ? (
+        <ProfileEditModal
+          visible={isEditModalVisible}
+          editData={editData}
+          setEditData={setEditData}
+          profileName={profileData.name}
+          profileEmail={profileData.email}
+          cars={cars}
+          isSaving={isSaving}
+          onClose={handleCloseEditModal}
+          onSave={handleSaveProfile}
+          onAddNewVehicle={handleAddNewVehicle}
+        />
+      ) : null}
     </SafeAreaView>
   );
 }

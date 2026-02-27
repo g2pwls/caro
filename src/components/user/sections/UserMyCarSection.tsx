@@ -1,33 +1,36 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { Modal, Pressable, ScrollView, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { borderRadius, colors, typography } from '@/theme';
-import { NavigationBar } from '@/components/common/Bar/NavigationBar';
-import { useAuthStore } from '@/stores/authStore';
-import { useProfileStore } from '@/stores/profileStore';
-import { useMyCarStore } from '@/stores/myCarStore';
-import { deleteMyCar, setPrimaryCar } from '@/services/vehicleService';
-import { getTabRoute } from '@/utils/navigation';
-
+import type { PrimaryCar } from '@/types/profile';
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import BCheckIcon from '@/assets/icons/bcheck.svg';
 import GCheckIcon from '@/assets/icons/gcheck.svg';
+import { deleteMyCar, setPrimaryCar } from '@/services/vehicleService';
 
-export default function MyCarScreen() {
-  const router = useRouter();
-  const accessToken = useAuthStore((s) => s.accessToken);
-  const { primaryCar, loadProfile } = useProfileStore();
-  const { cars, loadMyCars } = useMyCarStore();
+interface UserMyCarSectionProps {
+  accessToken: string | null;
+  primaryCar: PrimaryCar | null;
+  cars: PrimaryCar[];
+  loadProfile: () => Promise<void> | void;
+  loadMyCars: () => Promise<void> | void;
+  onBack: () => void;
+}
 
+export function UserMyCarSection({
+  accessToken,
+  primaryCar,
+  cars,
+  loadProfile,
+  loadMyCars,
+  onBack,
+}: UserMyCarSectionProps) {
   const [deleteTarget, setDeleteTarget] = useState<{ id: number; name: string } | null>(null);
 
   useEffect(() => {
-    if (accessToken) {
-      loadProfile();
-      loadMyCars();
-    }
-  }, [accessToken, loadProfile, loadMyCars]);
+    if (!accessToken) return;
+    loadProfile();
+    loadMyCars();
+  }, [accessToken, loadMyCars, loadProfile]);
 
   const handleDeleteCar = (carId: number, carName: string) => {
     setDeleteTarget({ id: carId, name: carName });
@@ -37,37 +40,35 @@ export default function MyCarScreen() {
     if (!deleteTarget || !accessToken) return;
     try {
       await deleteMyCar(deleteTarget.id);
-      // 삭제 후 차량 목록 & 프로필 새로고침
       await Promise.all([loadMyCars(), loadProfile()]);
     } catch (err) {
       console.warn('차량 삭제 실패:', err);
     } finally {
       setDeleteTarget(null);
     }
-  }, [deleteTarget, accessToken, loadMyCars, loadProfile]);
+  }, [accessToken, deleteTarget, loadMyCars, loadProfile]);
 
   const handleCancelDelete = useCallback(() => {
     setDeleteTarget(null);
   }, []);
 
-  // 대표 차량 변경 핸들러
-  const handleSelectPrimary = useCallback(async (carId: number) => {
-    if (!accessToken) return;
-    // 이미 대표 차량이면 무시
-    if (primaryCar?.id === carId) return;
-    try {
-      await setPrimaryCar(carId);
-      // 대표 차량 변경 후 프로필 새로고침
-      await loadProfile();
-    } catch (err) {
-      console.warn('대표 차량 변경 실패:', err);
-    }
-  }, [accessToken, primaryCar, loadProfile]);
+  const handleSelectPrimary = useCallback(
+    async (carId: number) => {
+      if (!accessToken) return;
+      if (primaryCar?.id === carId) return;
+      try {
+        await setPrimaryCar(carId);
+        await loadProfile();
+      } catch (err) {
+        console.warn('대표 차량 변경 실패:', err);
+      }
+    },
+    [accessToken, loadProfile, primaryCar],
+  );
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.coolNeutral[10] }}>
+    <>
       <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ paddingBottom: 20, gap: 25 }}>
-        {/* 헤더 */}
         <View
           style={{
             paddingVertical: 12,
@@ -78,10 +79,10 @@ export default function MyCarScreen() {
           }}
         >
           <Pressable
-            onPress={() => router.back()}
+            onPress={onBack}
             style={{ width: 24, height: 24, justifyContent: 'center' }}
             accessibilityRole="button"
-            accessibilityLabel="back"
+            accessibilityLabel="back-my-car"
           >
             <ArrowLeftIcon width={24} height={24} />
           </Pressable>
@@ -97,7 +98,6 @@ export default function MyCarScreen() {
         </View>
 
         <View style={{ paddingHorizontal: 20, gap: 24 }}>
-          {/* 선택 된 차량 */}
           <View style={{ gap: 16 }}>
             <Text
               style={{
@@ -168,10 +168,8 @@ export default function MyCarScreen() {
             )}
           </View>
 
-          {/* 구분선 */}
           <View style={{ height: 1, backgroundColor: colors.coolNeutral[20] }} />
 
-          {/* 보유 차량 */}
           <View style={{ gap: 16, marginTop: 4 }}>
             <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
               <Text
@@ -194,7 +192,6 @@ export default function MyCarScreen() {
               </Text>
             </View>
 
-            {/* 차량 목록 */}
             <View style={{ gap: 12 }}>
               {cars.map((car) => {
                 const isPrimary = primaryCar?.id === car.id;
@@ -281,21 +278,7 @@ export default function MyCarScreen() {
         </View>
       </ScrollView>
 
-      <View style={{ width: '100%', backgroundColor: colors.coolNeutral[10] }}>
-        <NavigationBar
-          active="user"
-          showBorder
-          onPress={(tab) => router.push(getTabRoute(tab))}
-        />
-      </View>
-
-      {/* 삭제 확인 모달 */}
-      <Modal
-        visible={deleteTarget !== null}
-        transparent
-        animationType="fade"
-        onRequestClose={handleCancelDelete}
-      >
+      <Modal visible={deleteTarget !== null} transparent animationType="fade" onRequestClose={handleCancelDelete}>
         <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'center', alignItems: 'center' }}>
           <Pressable
             onPress={handleCancelDelete}
@@ -313,7 +296,6 @@ export default function MyCarScreen() {
               gap: 12,
             }}
           >
-            {/* 타이틀 */}
             <View style={{ alignItems: 'center', gap: 12 }}>
               <Text
                 style={{
@@ -340,7 +322,6 @@ export default function MyCarScreen() {
               </Text>
             </View>
 
-            {/* 버튼 영역 */}
             <View style={{ flexDirection: 'row', gap: 12, width: '100%' }}>
               <Pressable
                 onPress={handleCancelDelete}
@@ -389,6 +370,6 @@ export default function MyCarScreen() {
           </View>
         </View>
       </Modal>
-    </SafeAreaView>
+    </>
   );
 }
