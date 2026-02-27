@@ -12,17 +12,12 @@ import {
 import type { Dispatch, SetStateAction } from 'react';
 import { borderRadius, colors, typography } from '@/theme';
 import TextInput from '@/components/common/Input/TextInput';
+import type { UserEditData } from '@/components/user/types';
 import type { PrimaryCar } from '@/types/profile';
 import XIcon from '@/assets/icons/x_icon.svg';
 import DownIcon from '@/assets/icons/DownIcon.svg';
 import PlusIcon from '@/assets/icons/plus.svg';
 import BCheckIcon from '@/assets/icons/bcheck.svg';
-
-export type UserEditData = {
-  name: string;
-  selectedCarId: number | null;
-  carNumber: string;
-};
 
 interface ProfileEditModalProps {
   visible: boolean;

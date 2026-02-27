@@ -6,6 +6,7 @@ import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { ProfileEditModal } from '@/components/user/modals/ProfileEditModal';
 import { useAuth } from '@/hooks/useAuth';
+import { useUserProfileEdit } from '@/hooks/user/useUserProfileEdit';
 import { useAuthStore } from '@/stores/authStore';
 import { useProfileStore } from '@/stores/profileStore';
 import { useSignupDraftStore } from '@/stores/signupDraftStore';
@@ -26,8 +27,6 @@ export default function UserScreen() {
   const { cars, loadMyCars } = useMyCarStore();
   const [dashboard, setDashboard] = useState<DashboardData | null>(null);
   
-  const [isEditModalVisible, setIsEditModalVisible] = useState(false);
-  
   // API에서 프로필 데이터, 대시보드, 차량 목록 로드
   useEffect(() => {
     if (accessToken) {
@@ -45,78 +44,29 @@ export default function UserScreen() {
     carNumber: primaryCar?.registrationNumber || '',
   };
   
-  // 수정 중인 데이터 상태
-  const [editData, setEditData] = useState({
-    name: '',
-    selectedCarId: null as number | null,
-    carNumber: '',
-  });
-
-  const handleOpenEditModal = () => {
-    setEditData({
-      name: profileData.name,
-      selectedCarId: primaryCar?.id ?? (cars.length > 0 ? cars[0].id : null),
-      carNumber: primaryCar?.registrationNumber || '',
-    });
-    setIsEditModalVisible(true);
-  };
-
-  const handleCloseEditModal = () => {
-    setIsEditModalVisible(false);
-  };
-
   const { updateProfile } = useProfileStore();
   const { setMode, clearDraft } = useSignupDraftStore();
-  const [isSaving, setIsSaving] = useState(false);
-  
-  const handleSaveProfile = async () => {
-    if (!accessToken) return;
-    
-    // 변경된 필드만 request body에 포함
-    const request: { name?: string; car?: { id: number; registrationNumber: string } } = {};
-    
-    const originalName = name || '사용자';
-    if (editData.name !== originalName) {
-      request.name = editData.name;
-    }
-    
-    const originalCarId = primaryCar?.id;
-    const originalCarNumber = primaryCar?.registrationNumber || '';
-    if (
-      editData.selectedCarId &&
-      (editData.selectedCarId !== originalCarId || editData.carNumber !== originalCarNumber)
-    ) {
-      request.car = {
-        id: editData.selectedCarId,
-        registrationNumber: editData.carNumber,
-      };
-    }
-    
-    // 변경사항이 없으면 모달만 닫기
-    if (Object.keys(request).length === 0) {
-      setIsEditModalVisible(false);
-      return;
-    }
-    
-    setIsSaving(true);
-    try {
-      await updateProfile(request);
-      // 프로필 + 차량 목록 다시 로드하여 최신 상태 반영
-      await Promise.all([
-        loadProfile(),
-        loadMyCars(),
-      ]);
-      setIsEditModalVisible(false);
-    } catch (e) {
-      Alert.alert('수정 실패', '프로필 수정에 실패했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsSaving(false);
-    }
-  };
+  const {
+    isEditModalVisible,
+    editData,
+    setEditData,
+    isSaving,
+    handleOpenEditModal,
+    handleCloseEditModal,
+    handleSaveProfile,
+  } = useUserProfileEdit({
+    accessToken,
+    profileName: profileData.name,
+    primaryCar,
+    cars,
+    loadProfile,
+    loadMyCars,
+    updateProfile,
+  });
 
   const handleAddNewVehicle = () => {
     // 모달 닫기
-    setIsEditModalVisible(false);
+    handleCloseEditModal();
     // 차량 추가 모드로 설정 후 플로우 시작
     clearDraft();
     setMode('add-vehicle');
