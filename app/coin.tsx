@@ -30,6 +30,8 @@ import { useProfileStore } from '@/stores/profileStore';
 import { useMyCarStore } from '@/stores/myCarStore';
 import type { Expense, ExpenseCategory } from '@/types/expense';
 import type { PrimaryCar } from '@/types/profile';
+import { useCoinExpenseData } from '@/hooks/coin/useCoinExpenseData';
+import { useCoinExpenseSubmit } from '@/hooks/coin/useCoinExpenseSubmit';
 import { getTabRoute } from '@/utils/navigation';
 import {
   formatYearMonthKorean,
@@ -320,15 +322,22 @@ export default function CoinScreen() {
     setPickedDay(kst.day);
   };
 
-  const refreshExpenseData = () => {
-    const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
-    fetchExpenses({ yearMonth, size: 100 });
-    if (selectedTab === 'expense') {
-      fetchSummary({});
-    } else {
-      fetchSummary({ yearMonth });
-    }
-  };
+  const { refreshExpenseData } = useCoinExpenseData({
+    accessToken,
+    selectedTab: selectedTab as 'calendar' | 'expense',
+    selectedCategory,
+    calendarSelectedCategory,
+    currentYear,
+    currentMonthIndex,
+    categoriesLength: categories.length,
+    addCategory,
+    setAddCategory,
+    fetchExpenses,
+    fetchSummary,
+    fetchCategories,
+    mapUiCategoryToApi,
+    categories,
+  });
 
   // OCR 결과를 폼에 적용
   const applyOcrResult = (ocrResult: {
@@ -496,57 +505,6 @@ export default function CoinScreen() {
     
     return result;
   }, [currentYear, currentMonthIndex, expenses]);
-
-  // 지출 탭일 때 API 호출
-  useEffect(() => {
-    if (selectedTab === 'expense' && accessToken) {
-      const apiCategory = mapUiCategoryToApi(selectedCategory);
-      fetchExpenses({
-        category: apiCategory,
-      });
-    }
-  }, [selectedTab, selectedCategory, accessToken]);
-
-  // 캘린더 탭일 때 API 호출 (현재 보고 있는 월의 데이터를 가져옴)
-  useEffect(() => {
-    if (selectedTab === 'calendar' && accessToken) {
-      const apiCategory = mapUiCategoryToApi(calendarSelectedCategory);
-      const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
-      fetchExpenses({
-        category: apiCategory,
-        yearMonth,
-        size: 100,
-      });
-    }
-  }, [selectedTab, calendarSelectedCategory, accessToken, currentYear, currentMonthIndex]);
-
-  // 지출 요약 API 호출: 지출 탭이면 전체 기간, 캘린더 탭이면 월별
-  useEffect(() => {
-    if (accessToken) {
-      if (selectedTab === 'expense') {
-        // 지출 탭: yearMonth 없이 전체 기간 누적 조회
-        fetchSummary({});
-      } else {
-        // 캘린더 탭: 월별 조회
-        const yearMonth = toYearMonth(currentYear, currentMonthIndex + 1);
-        fetchSummary({ yearMonth });
-      }
-    }
-  }, [accessToken, selectedTab, currentYear, currentMonthIndex, fetchSummary]);
-
-  // 카테고리 목록 조회 (최초 1회)
-  useEffect(() => {
-    if (accessToken && categories.length === 0) {
-      fetchCategories();
-    }
-  }, [accessToken, categories.length, fetchCategories]);
-
-  // 카테고리 로드 후 첫 번째 카테고리를 기본 선택
-  useEffect(() => {
-    if (categories.length > 0 && !categories.find(c => c.category === addCategory)) {
-      setAddCategory(categories[0].category);
-    }
-  }, [categories, addCategory]);
 
   // 요약 데이터에서 파생된 값들
   const summaryMonthLabel = useMemo(() => {
@@ -761,6 +719,28 @@ export default function CoinScreen() {
     closeAddExpenseModal();
     openCarSelectModal();
   };
+
+  const handleSubmitExpense = useCoinExpenseSubmit({
+    isAddEnabled,
+    accessToken,
+    selectedCar,
+    addDate,
+    addAmount,
+    addCategory,
+    addPlace,
+    addMemo,
+    editingExpenseId,
+    isUpdating,
+    isCreating,
+    parseKoreanDateToIso,
+    updateExpense,
+    createExpense,
+    getUpdateError: () => useExpenseStore.getState().updateError,
+    getCreateError: () => useExpenseStore.getState().createError,
+    closeAddExpenseModal,
+    refreshExpenseData,
+    setIsExpenseToastVisible,
+  });
 
   return (
     <SafeAreaView
@@ -1582,67 +1562,7 @@ export default function CoinScreen() {
                     {/* 하단 버튼 */}
                     <Pressable
                       disabled={!isAddEnabled || isCreating || isUpdating || !selectedCar}
-                      onPress={async () => {
-                        if (!isAddEnabled || !accessToken || !selectedCar) return;
-
-                        const expenseDate = parseKoreanDateToIso(addDate);
-
-                        if (!expenseDate) {
-                          Alert.alert('오류', '날짜가 올바르지 않습니다.');
-                          return;
-                        }
-
-                        if (editingExpenseId) {
-                          // 수정 모드
-                          if (isUpdating) return;
-                          const updateData = {
-                            expenseDate,
-                            amount: parseInt(addAmount.replace(/,/g, ''), 10) || 0,
-                            category: addCategory,
-                            location: addPlace,
-                            memo: addMemo,
-                          };
-
-                          const success = await updateExpense({
-                            expenseId: editingExpenseId,
-                            request: updateData,
-                          });
-
-                          if (success) {
-                            closeAddExpenseModal({ resetForm: true, clearEditing: true });
-                            refreshExpenseData();
-                          } else {
-                            const errorMsg = useExpenseStore.getState().updateError || '지출 내역 수정에 실패했습니다.';
-                            Alert.alert('오류', errorMsg);
-                          }
-                        } else {
-                          // 추가 모드
-                          if (isCreating) return;
-                          const requestData = {
-                            memberCarId: selectedCar.id,
-                            expenseDate,
-                            amount: parseInt(addAmount.replace(/,/g, ''), 10) || 0,
-                            category: addCategory,
-                            location: addPlace,
-                            memo: addMemo,
-                          };
-
-                          console.log('createExpense request:', requestData);
-
-                          const success = await createExpense({
-                            request: requestData,
-                          });
-
-                          if (success) {
-                            closeAddExpenseModal({ resetForm: true, clearEditing: true });
-                            refreshExpenseData();
-                            setIsExpenseToastVisible(true);
-                          } else {
-                            const errorMsg = useExpenseStore.getState().createError || '지출 내역 추가에 실패했습니다.';
-                            Alert.alert('오류', errorMsg);
-                          }
-                        }
-                      }}
+                      onPress={handleSubmitExpense}
                       style={{
                         width: '100%',
                         height: 48,
