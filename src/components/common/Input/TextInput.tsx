@@ -3,6 +3,7 @@ import { TextInput as RNTextInput, Pressable, Text, TextInputProps, View } from 
 import { colors, typography } from '@/theme';
 import XIcon from '@/assets/icons/x_icon.svg';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
+import { useInputVisualState } from '@/components/common/Input/useInputVisualState';
 
 interface CustomTextInputProps extends TextInputProps {
   label: string;
@@ -30,28 +31,13 @@ const TextInput = ({
   
   const hasValue = value && value.length > 0;
   const hasError = error && error.length > 0;
-
-  // 테두리 색상 결정
-  const getBorderColor = () => {
-    if (disabled) return colors.coolNeutral[30];
-    if (hasError) return colors.red[30];
-    if (isFocused) return colors.primary[50];
-    if (!noBlurStyle && hasValue) return colors.coolNeutral[30]; // 값이 있고 포커스 아닐 때 → disabled 스타일
-    return colors.coolNeutral[20];
-  };
-
-  // 배경 색상 결정
-  const getBackgroundColor = () => {
-    if (disabled) return colors.background.default;
-    if (!noBlurStyle && !isFocused && hasValue) return colors.background.default; // 값이 있고 포커스 아닐 때 → disabled 스타일
-    return colors.coolNeutral[10];
-  };
-
-  // 커서 색상
-  const getCursorColor = () => {
-    if (hasError) return colors.red[50];
-    return colors.primary[50];
-  };
+  const { borderColor, backgroundColor, cursorColor } = useInputVisualState({
+    disabled,
+    hasError: !!hasError,
+    isFocused,
+    hasValue: !!hasValue,
+    blurFilledStyle: !noBlurStyle,
+  });
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -75,8 +61,8 @@ const TextInput = ({
       {/* 입력창 */}
       <InputFrame
         width={334}
-        borderColor={getBorderColor()}
-        backgroundColor={getBackgroundColor()}
+        borderColor={borderColor}
+        backgroundColor={backgroundColor}
         style={{ justifyContent: 'space-between' }}
       >
         <RNTextInput
@@ -84,8 +70,8 @@ const TextInput = ({
           value={value}
           editable={!disabled}
           placeholderTextColor={colors.coolNeutral[30]}
-          cursorColor={getCursorColor()}
-          selectionColor={getCursorColor()}
+          cursorColor={cursorColor}
+          selectionColor={cursorColor}
           onFocus={handleFocus}
           onBlur={handleBlur}
           style={{

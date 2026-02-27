@@ -5,6 +5,7 @@ import XIcon from '@/assets/icons/x_icon.svg';
 import EyeOpenIcon from '@/assets/icons/eye-open.svg';
 import EyeClosedIcon from '@/assets/icons/eye-closed.svg';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
+import { useInputVisualState } from '@/components/common/Input/useInputVisualState';
 
 
 interface CustomPasswordInputProps extends Omit<TextInputProps, 'secureTextEntry'> {
@@ -33,27 +34,14 @@ const PasswordInput = ({
   
   const hasValue = value && value.length > 0;
   const hasError = error && error.length > 0;
-
-  // 테두리 색상 결정
-  const getBorderColor = () => {
-    if (disabled) return colors.coolNeutral[30];
-    if (hasError) return colors.red[30];
-    // 비밀번호 입력은 "포커스일 때만" 강조 보더가 보이도록
-    if (isFocused) return colors.primary[50];
-    return colors.coolNeutral[20];
-  };
-
-  // 배경 색상 결정
-  const getBackgroundColor = () => {
-    if (disabled) return 'transparent';
-    return colors.coolNeutral[10];
-  };
-
-  // 커서 색상
-  const getCursorColor = () => {
-    if (hasError) return colors.red[50];
-    return colors.primary[50];
-  };
+  const { borderColor, backgroundColor, cursorColor } = useInputVisualState({
+    disabled,
+    hasError: !!hasError,
+    isFocused,
+    focusOnlyBorder: true,
+    blurFilledStyle: false,
+    disabledBackgroundColor: 'transparent',
+  });
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -77,8 +65,8 @@ const PasswordInput = ({
       {/* 입력창 */}
       <InputFrame
         width={334}
-        borderColor={getBorderColor()}
-        backgroundColor={getBackgroundColor()}
+        borderColor={borderColor}
+        backgroundColor={backgroundColor}
         style={{ justifyContent: 'space-between' }}
       >
         <RNTextInput
@@ -86,8 +74,8 @@ const PasswordInput = ({
           value={value}
           editable={!disabled}
           placeholderTextColor={colors.coolNeutral[30]}
-          cursorColor={getCursorColor()}
-          selectionColor={getCursorColor()}
+          cursorColor={cursorColor}
+          selectionColor={cursorColor}
           onFocus={handleFocus}
           onBlur={handleBlur}
           style={{

@@ -10,6 +10,7 @@ import {
 import { colors, typography, borderRadius } from '@/theme';
 import XIcon from '@/assets/icons/x_icon.svg';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
+import { useInputVisualState } from '@/components/common/Input/useInputVisualState';
 
 interface CustomCarTypeInputProps extends TextInputProps {
   label: string;
@@ -40,26 +41,16 @@ const CarTypeInput = ({
   const hasValue = value && value.length > 0;
   const hasError = error && error.length > 0;
   const hasSuccess = success && success.length > 0;
-
-  // 테두리 색상 결정
-  const getBorderColor = () => {
-    if (completed || hasSuccess) return colors.coolNeutral[10];
-    if (hasError) return colors.red[30];
-    if (isFocused) return colors.primary[50]; // 포커스일 때만
-    return colors.coolNeutral[20];
-  };
-
-  // 배경 색상 결정
-  const getBackgroundColor = () => {
-    if (completed) return 'transparent';
-    return colors.coolNeutral[10];
-  };
-
-  // 커서 색상
-  const getCursorColor = () => {
-    if (hasError) return colors.red[50];
-    return colors.primary[50];
-  };
+  const { borderColor, backgroundColor, cursorColor } = useInputVisualState({
+    hasError: !!hasError,
+    isFocused,
+    hasSuccess: !!hasSuccess,
+    completed,
+    focusOnlyBorder: true,
+    blurFilledStyle: false,
+    completedBorderColor: colors.coolNeutral[10],
+    completedBackgroundColor: 'transparent',
+  });
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -99,16 +90,16 @@ const CarTypeInput = ({
   {/* 🔹 입력칸 */}
   <InputFrame
     width={260}
-    borderColor={getBorderColor()}
-    backgroundColor={getBackgroundColor()}
+    borderColor={borderColor}
+    backgroundColor={backgroundColor}
   >
     <RNTextInput
       ref={inputRef}
       value={value}
       editable={!completed}
       placeholderTextColor={colors.coolNeutral[30]}
-      cursorColor={getCursorColor()}
-      selectionColor={getCursorColor()}
+      cursorColor={cursorColor}
+      selectionColor={cursorColor}
       onFocus={handleFocus}
       onBlur={handleBlur}
       style={{

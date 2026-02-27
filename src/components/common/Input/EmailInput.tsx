@@ -3,6 +3,7 @@ import { TextInput as RNTextInput, Pressable, Text, TextInputProps, View } from 
 import { colors, typography, borderRadius } from '@/theme';
 import XIcon from '@/assets/icons/x_icon.svg';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
+import { useInputVisualState } from '@/components/common/Input/useInputVisualState';
 
 interface CustomEmailInputProps extends TextInputProps {
   label: string;
@@ -33,26 +34,12 @@ const EmailInput = ({
   const hasValue = !!value && value.length > 0;
   const hasError = !!error && error.length > 0;
   const hasSuccess = !!success && success.length > 0;
-
-  // 테두리 색상 결정
-  const getBorderColor = () => {
-    if (hasError) return colors.red[30];
-    if (isFocused) return colors.primary[50];
-    if (hasSuccess || hasValue) return colors.coolNeutral[30]; // 값이 있거나 중복확인 완료 → disabled 스타일
-    return colors.coolNeutral[20];
-  };
-
-  // 배경 색상 결정
-  const getBackgroundColor = () => {
-    if (!isFocused && (hasSuccess || hasValue)) return colors.background.default; // 포커스 아닐 때 값 있으면 → disabled 스타일
-    return colors.coolNeutral[10];
-  };
-
-  // 커서 색상
-  const getCursorColor = () => {
-    if (hasError) return colors.red[50];
-    return colors.primary[50];
-  };
+  const { borderColor, backgroundColor, cursorColor } = useInputVisualState({
+    hasError,
+    isFocused,
+    hasValue,
+    hasSuccess,
+  });
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -90,16 +77,16 @@ const EmailInput = ({
   {/* 🔹 입력칸 */}
   <InputFrame
     width={248}
-    borderColor={getBorderColor()}
-    backgroundColor={getBackgroundColor()}
+    borderColor={borderColor}
+    backgroundColor={backgroundColor}
   >
     <RNTextInput
       ref={inputRef}
       value={value}
       editable={true}
       placeholderTextColor={colors.coolNeutral[30]}
-      cursorColor={getCursorColor()}
-      selectionColor={getCursorColor()}
+      cursorColor={cursorColor}
+      selectionColor={cursorColor}
       onFocus={handleFocus}
       onBlur={handleBlur}
       style={{

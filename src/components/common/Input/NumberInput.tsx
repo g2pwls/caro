@@ -9,6 +9,7 @@ import { colors, typography } from '@/theme';
 import XIcon from '@/assets/icons/x_icon.svg';
 import { formatNumberWithComma, onlyDigits } from '@/utils/number';
 import { BaseInput, InputFrame } from '@/components/common/Input/BaseInput';
+import { useInputVisualState } from '@/components/common/Input/useInputVisualState';
 
 interface CustomNumberInputProps extends TextInputProps {
   label: string;
@@ -41,28 +42,13 @@ const NumberInput = ({
   const hasError = error && error.length > 0;
   const isCompleted = completed && hasValue && !hasError;
   const displayValue = isFocused ? (value ?? '') : formatNumberWithComma(value);
-
-  // 테두리 색상 결정
-  const getBorderColor = () => {
-    if (disabled) return colors.coolNeutral[30];
-    if (hasError) return colors.red[30];
-    if (isFocused) return colors.primary[50];
-    if (hasValue) return colors.coolNeutral[30]; // 값 있고 포커스 아닐 때 → 비활성 스타일
-    return colors.coolNeutral[20];
-  };
-
-  // 배경 색상 결정
-  const getBackgroundColor = () => {
-    if (disabled) return 'transparent';
-    if (!isFocused && hasValue) return colors.background.default; // 값 있고 포커스 아닐 때 → 비활성 스타일
-    return colors.coolNeutral[10];
-  };
-
-  // 커서 색상
-  const getCursorColor = () => {
-    if (hasError) return colors.red[50];
-    return colors.primary[50];
-  };
+  const { borderColor, backgroundColor, cursorColor } = useInputVisualState({
+    disabled,
+    hasError: !!hasError,
+    isFocused,
+    hasValue: !!hasValue,
+    disabledBackgroundColor: 'transparent',
+  });
 
   const handleFocus = (e: any) => {
     setIsFocused(true);
@@ -90,8 +76,8 @@ const NumberInput = ({
       {/* 입력창 */}
       <InputFrame
         width={334}
-        borderColor={getBorderColor()}
-        backgroundColor={getBackgroundColor()}
+        borderColor={borderColor}
+        backgroundColor={backgroundColor}
         style={{ justifyContent: 'space-between' }}
       >
         <RNTextInput
@@ -101,8 +87,8 @@ const NumberInput = ({
           keyboardType="number-pad"
           inputMode="numeric"
           placeholderTextColor={colors.coolNeutral[30]}
-          cursorColor={getCursorColor()}
-          selectionColor={getCursorColor()}
+          cursorColor={cursorColor}
+          selectionColor={cursorColor}
           onChangeText={handleChangeText}
           onFocus={handleFocus}
           onBlur={handleBlur}
