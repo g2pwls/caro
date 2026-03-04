@@ -5,6 +5,7 @@ import { colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { ToggleButton, type ToggleOption, type ToggleValue } from '@/components/common/Button/ToggleButton';
 import { MainButton } from '@/components/common/Button/MainButton';
+import { HomeRecentPointsSection } from '@/components/home/sections/HomeRecentPointsSection';
 import { Toast } from '@/components/common/Toast/Toast';
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -46,14 +47,10 @@ import InfoIcon from '@/assets/icons/info.svg';
 import BCheckIcon from '@/assets/icons/bcheck.svg';
 import GCheckIcon from '@/assets/icons/gcheck.svg';
 import WXIcon from '@/assets/icons/w_x.svg';
-import CalendarIcon from '@/assets/icons/calendar.svg';
 import LogoIcon from '@/assets/icons/logo.svg';
 import YCoinIcon from '@/assets/icons/ycoin.svg';
 import SirenIcon from '@/assets/icons/siren.svg';
 import YPointIcon from '@/assets/icons/ypoint.svg';
-import RCarIcon from '@/assets/icons/rcar.svg';
-import RCalIcon from '@/assets/icons/rcal.svg';
-import RCouponIcon from '@/assets/icons/rcoupon.svg';
 import Day1Icon from '@/assets/icons/Day1.svg';
 import Day2Icon from '@/assets/icons/Day2.svg';
 import Day3Icon from '@/assets/icons/Day3.svg';
@@ -82,11 +79,6 @@ function formatDuration(startISO: string, endISO: string): string {
   const mm = Math.floor((totalSec % 3600) / 60).toString().padStart(2, '0');
   const ss = (totalSec % 60).toString().padStart(2, '0');
   return `${hh} : ${mm} : ${ss}`;
-}
-
-function formatPointAmount(amount: number) {
-  const abs = Math.abs(amount).toLocaleString('ko-KR');
-  return `${amount >= 0 ? '+ ' : '- '}${abs} P`;
 }
 
 export default function HomeScreen() {
@@ -1604,124 +1596,10 @@ export default function HomeScreen() {
               <View style={{ height: 28, backgroundColor: colors.coolNeutral[20], marginHorizontal: -20 }} />
 
               {/* 최근 포인트 */}
-              <View style={{ gap: 16, paddingVertical: 24, paddingHorizontal: 20, marginHorizontal: -20, marginTop: -24 }}>
-                <Pressable
-                  accessibilityRole="button"
-                  accessibilityLabel="recent-points"
-                  style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}
-                  onPress={() => router.push({ pathname: '/store', params: { tab: 'point' } })}
-                >
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h3Bold,
-                      color: colors.coolNeutral[90],
-                    }}
-                  >
-                    최근 포인트
-                  </Text>
-                  <RightIcon width={20} height={20} />
-                </Pressable>
-                <View style={{ gap: 20 }}>
-                  {pointHistories.slice(0, 5).map((item, index) => {
-                    const isEarn = item.pointChange >= 0;
-                    const amountColor = isEarn ? colors.primary[50] : colors.red[50];
-                    const displayDate = item.type === 'DRIVING' && item.drivingDetail
-                      ? formatDateOnly(item.drivingDetail.startDateTime)
-                      : formatDateOnly(item.date);
-                    const distanceKm = item.type === 'DRIVING' && item.drivingDetail
-                      ? item.drivingDetail.distanceKm
-                      : null;
-                    const TypeIcon = item.type === 'DRIVING'
-                      ? RCarIcon
-                      : item.type === 'ATTENDANCE'
-                        ? RCalIcon
-                        : RCouponIcon;
-
-                    const isDriving = item.type === 'DRIVING' && item.drivingDetail?.drivingRecordId;
-
-                    return (
-                      <Pressable
-                        key={`${item.date}-${index}`}
-                        style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}
-                        disabled={!isDriving}
-                        onPress={() => {
-                          if (isDriving) {
-                            router.push({
-                              pathname: '/car-detail',
-                              params: { drivingRecordId: String(item.drivingDetail!.drivingRecordId) },
-                            });
-                          }
-                        }}
-                      >
-                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 }}>
-                          <View
-                            style={{
-                              width: 40,
-                              height: 40,
-                              borderRadius: 12,
-                              backgroundColor: colors.coolNeutral[20],
-                              alignItems: 'center',
-                              justifyContent: 'center',
-                            }}
-                          >
-                            <TypeIcon width={24} height={24} />
-                          </View>
-                          <View style={{ gap: 2, flex: 1 }}>
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body2Bold,
-                                color: colors.coolNeutral[80],
-                              }}
-                              numberOfLines={1}
-                            >
-                              {item.description}
-                            </Text>
-                            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                <CalendarIcon width={14} height={14} />
-                                <Text
-                                  style={{
-                                    fontFamily: typography.fontFamily.pretendard,
-                                    ...typography.styles.captionMedium,
-                                    color: colors.coolNeutral[40],
-                                  }}
-                                >
-                                  {displayDate}
-                                </Text>
-                              </View>
-                              {distanceKm != null && (
-                                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                                  <GCarIcon width={14} height={14} />
-                                  <Text
-                                    style={{
-                                      fontFamily: typography.fontFamily.pretendard,
-                                      ...typography.styles.captionMedium,
-                                      color: colors.coolNeutral[40],
-                                    }}
-                                  >
-                                    {distanceKm} km
-                                  </Text>
-                                </View>
-                              )}
-                            </View>
-                          </View>
-                        </View>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body1Bold,
-                            color: amountColor,
-                          }}
-                        >
-                          {formatPointAmount(item.pointChange)}
-                        </Text>
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
+              <HomeRecentPointsSection
+                pointHistories={pointHistories}
+                onPressMore={() => router.push({ pathname: '/store', params: { tab: 'point' } })}
+              />
             </View>
             )}
           </View>
