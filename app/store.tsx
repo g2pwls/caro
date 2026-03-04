@@ -12,10 +12,13 @@ import { useRouter, useLocalSearchParams } from 'expo-router';
 import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import CouponTab from '@/components/common/Category/CouponTab';
-import CategoryTab from '@/components/common/Category/CategoryTab';
 import { OverlayModal } from '@/components/common/Modal/OverlayModal';
-import { ContentState } from '@/components/common/State/ContentState';
 import { CompactCouponUsageGuide } from '@/components/store/CouponGuide';
+import {
+  StoreCouponSection,
+  StorePointHistorySection,
+  StoreProductsSection,
+} from '@/components/store/sections/StoreTabSections';
 import { useStoreScreenData } from '@/hooks/store/useStoreScreenData';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -34,7 +37,6 @@ import { formatPointDelta, formatPointNumber, formatPointTotal } from '@/utils/p
 import { toRewardImageUrl } from '@/utils/rewardImage';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
-import DownIcon from '@/assets/icons/DownIcon.svg';
 import WDownIcon from '@/assets/icons/wdown.svg';
 import XIcon from '@/assets/icons/x_icon.svg';
 import PointIcon from '@/assets/icons/point.svg';
@@ -545,6 +547,28 @@ export default function StoreScreen() {
     setIsBarcodeLarge(false);
   };
 
+  const navigateToDetail = (product: RewardCoupon) => {
+    router.push({
+      pathname: '/store-detail',
+      params: {
+        id: product.id.toString(),
+        brand: product.brandName,
+        name: product.itemName,
+        price: product.requiredPoints.toString(),
+        imageUrl: product.imageUrl,
+      },
+    });
+  };
+
+  const pointCardElement = (
+    <PointCard
+      pointTotal={pointTotal}
+      isExpanded={isPointCardExpanded}
+      onToggle={() => setIsPointCardExpanded((v) => !v)}
+      breakdown={pointBreakdown}
+    />
+  );
+
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor }}>
       {/* 쿠폰 사용 모달 */}
@@ -936,235 +960,50 @@ export default function StoreScreen() {
           <CouponTab tabs={rewardTabs} selectedTab={selectedTab} onTabChange={setSelectedTab} />
 
           {selectedTab === 'store' ? (
-            <View style={{ paddingTop: 18, gap: 37.5 }}>
-              {/* 포인트 카드 */}
-              <View style={{ paddingHorizontal: 20 }}>
-                <PointCard
-                  pointTotal={pointTotal}
-                  isExpanded={isPointCardExpanded}
-                  onToggle={() => setIsPointCardExpanded((v) => !v)}
-                  breakdown={pointBreakdown}
+            <StoreProductsSection
+              pointCard={pointCardElement}
+              storeCategory={storeCategory}
+              storeCategories={storeCategories}
+              onSelectCategory={setStoreCategory}
+              couponsLoading={couponsLoading}
+              rewardCoupons={rewardCoupons}
+              renderProductCard={(product) => (
+                <ProductCard
+                  product={product}
+                  onPress={() => navigateToDetail(product)}
                 />
-              </View>
-
-              {/* 카테고리 탭 + 상품 목록 */}
-              <View style={{ gap: 28.5 }}>
-                {/* 스토어 카테고리 탭 */}
-                <View style={{ paddingHorizontal: 20 }}>
-                  <CategoryTab
-                    selected={storeCategory}
-                    onSelect={setStoreCategory}
-                    categories={storeCategories}
-                    variant="store"
-                    dividerAfterIndex={2}
-                  />
-                </View>
-
-                {/* 전체 섹션 헤더 + 상품 그리드 */}
-                <View style={{ gap: 12 }}>
-                  <View style={{ paddingHorizontal: 20 }}>
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.h3Bold,
-                        color: colors.coolNeutral[90],
-                      }}
-                    >
-                      {storeCategories.find((c) => c.key === storeCategory)?.label ?? '전체'}
-                    </Text>
-                  </View>
-
-                  {/* 상품 그리드 */}
-                  <View style={{ paddingHorizontal: 20, gap: 16 }}>
-                    {couponsLoading ? (
-                      <ContentState variant="loading" message="불러오는 중..." />
-                    ) : rewardCoupons.length === 0 ? (
-                      <ContentState variant="empty" message="상품이 없습니다" />
-                    ) : (
-                      /* 2열 그리드로 상품 표시 */
-                      Array.from({ length: Math.ceil(rewardCoupons.length / 2) }).map((_, rowIndex) => {
-                        const product1 = rewardCoupons[rowIndex * 2];
-                        const product2 = rewardCoupons[rowIndex * 2 + 1];
-
-                        const navigateToDetail = (product: RewardCoupon) => {
-                          router.push({
-                            pathname: '/store-detail',
-                            params: {
-                              id: product.id.toString(),
-                              brand: product.brandName,
-                              name: product.itemName,
-                              price: product.requiredPoints.toString(),
-                              imageUrl: product.imageUrl,
-                            },
-                          });
-                        };
-
-                        return (
-                          <View key={rowIndex} style={{ flexDirection: 'row', gap: 19 }}>
-                            {product1 && (
-                              <ProductCard
-                                product={product1}
-                                onPress={() => navigateToDetail(product1)}
-                              />
-                            )}
-                            {product2 ? (
-                              <ProductCard
-                                product={product2}
-                                onPress={() => navigateToDetail(product2)}
-                              />
-                            ) : (
-                              <View style={{ flex: 1 }} />
-                            )}
-                          </View>
-                        );
-                      })
-                    )}
-                  </View>
-                </View>
-              </View>
-            </View>
+              )}
+            />
           ) : selectedTab === 'point' ? (
-            <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 30 }}>
-              {/* 포인트 카드 */}
-              <PointCard
-                pointTotal={pointTotal}
-                isExpanded={isPointCardExpanded}
-                onToggle={() => setIsPointCardExpanded((v) => !v)}
-                breakdown={pointBreakdown}
-              />
-
-              {/* 리스트 헤더 + 히스토리 카드들 */}
-              <View style={{ gap: 20 }}>
-                {/* 리스트 헤더 */}
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 4 }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h3Bold,
-                      color: colors.coolNeutral[90],
-                    }}
-                  >
-                    전체
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h3Bold,
-                      color: colors.primary[50],
-                    }}
-                  >
-                    {historyTotalCount}건
-                  </Text>
-                </View>
-
-                {/* 히스토리 카드들 */}
-                <View style={{ gap: 12 }}>
-                  {pointHistories.length === 0 ? (
-                    <ContentState variant="empty" message="포인트 내역이 없습니다" />
-                  ) : (
-                    pointHistories.slice(0, visibleHistoryCount).map((item, index) => (
-                      <PointHistoryCard key={`${item.date}-${index}`} item={item} />
-                    ))
-                  )}
-                </View>
-
-                {/* 더보기 */}
-                {visibleHistoryCount < pointHistories.length && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="more"
-                    style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
-                    onPress={() => {
-                      setVisibleHistoryCount((prev) => Math.min(prev + 4, pointHistories.length));
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body3Regular,
-                        color: colors.coolNeutral[50],
-                      }}
-                    >
-                      더보기
-                    </Text>
-                    <DownIcon width={16} height={16} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
+            <StorePointHistorySection
+              pointCard={pointCardElement}
+              historyTotalCount={historyTotalCount}
+              pointHistories={pointHistories}
+              visibleHistoryCount={visibleHistoryCount}
+              onMoreHistory={() => {
+                setVisibleHistoryCount((prev) => Math.min(prev + 4, pointHistories.length));
+              }}
+              renderHistoryCard={(item, index) => (
+                <PointHistoryCard key={`${item.date}-${index}`} item={item} />
+              )}
+            />
           ) : selectedTab === 'coupon' ? (
-            <View style={{ paddingHorizontal: 20, paddingTop: 18, gap: 30 }}>
-              {/* 포인트 카드 */}
-              <PointCard
-                pointTotal={pointTotal}
-                isExpanded={isPointCardExpanded}
-                onToggle={() => setIsPointCardExpanded((v) => !v)}
-                breakdown={pointBreakdown}
-              />
-
-              {/* 보유쿠폰 리스트 */}
-              <View style={{ gap: 20 }}>
-                {/* 리스트 헤더 */}
-                <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8 }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h3Bold,
-                      color: colors.coolNeutral[90],
-                    }}
-                  >
-                    보유쿠폰
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h3Bold,
-                      color: colors.primary[50],
-                    }}
-                  >
-                    {couponTotalCount}개
-                  </Text>
-                </View>
-
-                {/* 쿠폰 카드들 */}
-                <View style={{ gap: 12 }}>
-                  {memberCoupons.length === 0 ? (
-                    <ContentState variant="empty" message="보유 쿠폰이 없습니다" />
-                  ) : (
-                    memberCoupons.slice(0, visibleCouponCount).map((coupon) => (
-                      <CouponCard
-                        key={coupon.id}
-                        coupon={coupon}
-                        onUse={() => handleCouponUse(coupon)}
-                      />
-                    ))
-                  )}
-                </View>
-
-                {/* 더보기 */}
-                {visibleCouponCount < memberCoupons.length && (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel="more-coupons"
-                    style={{ alignItems: 'center', flexDirection: 'row', justifyContent: 'center', gap: 6 }}
-                    onPress={() => {
-                      setVisibleCouponCount((prev) => Math.min(prev + 4, memberCoupons.length));
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body3Regular,
-                        color: colors.coolNeutral[50],
-                      }}
-                    >
-                      더보기
-                    </Text>
-                    <DownIcon width={16} height={16} />
-                  </Pressable>
-                )}
-              </View>
-            </View>
+            <StoreCouponSection
+              pointCard={pointCardElement}
+              couponTotalCount={couponTotalCount}
+              memberCoupons={memberCoupons}
+              visibleCouponCount={visibleCouponCount}
+              onMoreCoupons={() => {
+                setVisibleCouponCount((prev) => Math.min(prev + 4, memberCoupons.length));
+              }}
+              renderCouponCard={(coupon) => (
+                <CouponCard
+                  key={coupon.id}
+                  coupon={coupon}
+                  onUse={() => handleCouponUse(coupon)}
+                />
+              )}
+            />
           ) : null}
         </View>
       </ScrollView>
