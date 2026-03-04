@@ -6,6 +6,7 @@ import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { ToggleButton, type ToggleOption, type ToggleValue } from '@/components/common/Button/ToggleButton';
 import { MainButton } from '@/components/common/Button/MainButton';
 import { HomeBluetoothSettingsModal } from '@/components/home/modals/HomeBluetoothSettingsModal';
+import { HomeStopDrivingModal } from '@/components/home/modals/HomeStopDrivingModal';
 import { HomeAttendanceSection } from '@/components/home/sections/HomeAttendanceSection';
 import { HomeRecentPointsSection } from '@/components/home/sections/HomeRecentPointsSection';
 import { HomeTodayDriveSection } from '@/components/home/sections/HomeTodayDriveSection';
@@ -1295,201 +1296,16 @@ export default function HomeScreen() {
         </View>
       </Modal>
 
-      {/* 운행 종료 확인 모달 */}
-      <Modal
+      <HomeStopDrivingModal
         visible={isStopModalVisible}
-        transparent
-        animationType="fade"
+        isSaving={isSaving}
+        totalDistanceKm={totalDistanceKm}
+        elapsedTimeText={formatElapsedTime(elapsedSeconds)}
+        estimatedPoints={estimatedPoints}
         onRequestClose={handleCancelStop}
-      >
-        <View style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.32)', justifyContent: 'center', alignItems: 'center' }}>
-          <View
-            style={{
-              width: 296,
-              backgroundColor: colors.coolNeutral[10],
-              borderRadius: 20,
-              padding: 20,
-              gap: 28,
-            }}
-          >
-            {/* 닫기 버튼 + 타이틀 + 설명 */}
-            <View>
-              {/* 닫기 버튼 */}
-              <View style={{ alignItems: 'flex-end' }}>
-                <Pressable
-                  onPress={handleCancelStop}
-                  style={{ padding: 4 }}
-                  accessibilityRole="button"
-                  accessibilityLabel="close-modal"
-                >
-                  <XIcon width={24} height={24} />
-                </Pressable>
-              </View>
-
-              {/* 타이틀 + 설명 */}
-              <View style={{ gap: 8 }}>
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.h3Bold,
-                    color: colors.coolNeutral[80],
-                    textAlign: 'center',
-                  }}
-                >
-                  운행을 종료하시겠어요?
-                </Text>
-
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.body2Medium,
-                    color: colors.coolNeutral[40],
-                    textAlign: 'center',
-                  }}
-                >
-                  지금까지의 운행기록이 저장됩니다.
-                </Text>
-              </View>
-            </View>
-
-            {/* 운행 정보 카드 + 버튼 */}
-            <View style={{ gap: 20 }}>
-              {/* 운행 정보 카드 */}
-              <View
-                style={{
-                  backgroundColor: colors.background.default,
-                  borderRadius: 12,
-                  padding: 12,
-                  gap: 12,
-                }}
-              >
-                {/* 주행 거리 */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Medium,
-                      color: colors.coolNeutral[60],
-                    }}
-                  >
-                    주행 거리
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Bold,
-                      color: colors.coolNeutral[90],
-                    }}
-                  >
-                    {totalDistanceKm.toFixed(1)} km
-                  </Text>
-                </View>
-
-                {/* 운행 시간 */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Medium,
-                      color: colors.coolNeutral[60],
-                    }}
-                  >
-                    운행 시간
-                  </Text>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Bold,
-                      color: colors.coolNeutral[80],
-                    }}
-                  >
-                    {formatElapsedTime(elapsedSeconds)}
-                  </Text>
-                </View>
-
-                {/* 예상 적립 포인트 */}
-                <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.body2Medium,
-                      color: colors.coolNeutral[60],
-                    }}
-                  >
-                    예상 적립 포인트
-                  </Text>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-                    <PointIcon width={16} height={16} />
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Bold,
-                        color: colors.coolNeutral[80],
-                      }}
-                    >
-                      {estimatedPoints} P
-                    </Text>
-                  </View>
-                </View>
-              </View>
-
-              {/* 버튼 영역 */}
-              <View style={{ flexDirection: 'row', gap: 12 }}>
-              {/* 취소 버튼 */}
-              <Pressable
-                onPress={handleCancelStop}
-                style={{
-                  flex: 1,
-                  height: 48,
-                  borderRadius: 12,
-                  backgroundColor: colors.coolNeutral[20],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="cancel-stop"
-              >
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.body1Bold,
-                    color: colors.coolNeutral[30],
-                  }}
-                >
-                  취소
-                </Text>
-              </Pressable>
-
-              {/* 종료하기 버튼 */}
-              <Pressable
-                onPress={handleConfirmStop}
-                disabled={isSaving}
-                style={{
-                  flex: 1,
-                  height: 48,
-                  borderRadius: 12,
-                  backgroundColor: isSaving ? colors.coolNeutral[30] : colors.red[40],
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-                accessibilityRole="button"
-                accessibilityLabel="confirm-stop"
-              >
-                <Text
-                  style={{
-                    fontFamily: typography.fontFamily.pretendard,
-                    ...typography.styles.body1Bold,
-                    color: colors.coolNeutral[10],
-                  }}
-                >
-                  {isSaving ? '저장 중...' : '종료하기'}
-                </Text>
-              </Pressable>
-              </View>
-            </View>
-          </View>
-        </View>
-      </Modal>
+        onCancel={handleCancelStop}
+        onConfirm={handleConfirmStop}
+      />
 
       {/* 블루투스 설정 모달 */}
       <HomeBluetoothSettingsModal
