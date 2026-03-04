@@ -1,13 +1,15 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { MainButton } from '@/components/common/Button/MainButton';
+import { OverlayModal } from '@/components/common/Modal/OverlayModal';
 import { Toast } from '@/components/common/Toast';
+import { useMemberPoints } from '@/hooks/store/useMemberPoints';
 import { useAuthStore } from '@/stores/authStore';
-import { exchangeCoupon, fetchMemberPoints } from '@/services/rewardService';
+import { exchangeCoupon } from '@/services/rewardService';
 import { getTabRoute } from '@/utils/navigation';
 import { formatPointNumber, formatPointTotal } from '@/utils/points';
 import { toRewardImageUrl } from '@/utils/rewardImage';
@@ -124,7 +126,7 @@ export default function StoreDetailScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { accessToken } = useAuthStore();
-  const [userPoint, setUserPoint] = useState(0);
+  const { availablePoints: userPoint, reload: reloadMemberPoints } = useMemberPoints({ accessToken });
 
   // URL 파라미터에서 상품 정보 가져오기
   const productId = params.id as string;
@@ -132,19 +134,6 @@ export default function StoreDetailScreen() {
   const productName = (params.name as string) || '[스타벅스] 아이스 아메리카노 Tall 모바일 교환권';
   const productPrice = Number(params.price) || 11000;
   const productImageUrl = params.imageUrl as string | undefined;
-
-  // API에서 포인트 정보 가져오기 (리워드 보유 포인트 조회)
-  const loadPoints = () => {
-    fetchMemberPoints()
-      .then((data) => setUserPoint(data.availablePoints))
-      .catch((err) => console.warn('포인트 조회 실패:', err));
-  };
-
-  useEffect(() => {
-    if (accessToken) {
-      loadPoints();
-    }
-  }, [accessToken]);
 
   // 포인트 충분 여부
   const hasEnoughPoints = userPoint >= productPrice;
@@ -161,7 +150,7 @@ export default function StoreDetailScreen() {
       setIsExchangeModalOpen(false);
       setIsToastVisible(true);
       // 포인트 갱신
-      loadPoints();
+      await reloadMemberPoints();
     } catch (err: any) {
       setIsExchangeModalOpen(false);
       console.warn('쿠폰 교환 실패:', err);
@@ -175,40 +164,21 @@ export default function StoreDetailScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.coolNeutral[10] }}>
       {/* 교환 확인 팝업 */}
-      {isExchangeModalOpen && (
-        <View
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            zIndex: 100,
-            backgroundColor: 'rgba(0,0,0,0.5)',
-            justifyContent: 'center',
-            alignItems: 'center',
-          }}
-        >
-          {/* 배경 터치 */}
-          <Pressable
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            onPress={() => setIsExchangeModalOpen(false)}
-          />
-
-          {/* 팝업 카드 */}
-          <View
-            style={{
-              backgroundColor: colors.coolNeutral[10],
-              borderRadius: 20,
-              paddingTop: 32,
-              paddingBottom: 20,
-              paddingHorizontal: 20,
-              width: '85%',
-              maxWidth: 340,
-              alignItems: 'center',
-              gap: 20,
-            }}
-          >
+      <OverlayModal
+        visible={isExchangeModalOpen}
+        onBackdropPress={() => setIsExchangeModalOpen(false)}
+        contentStyle={{
+          backgroundColor: colors.coolNeutral[10],
+          borderRadius: 20,
+          paddingTop: 32,
+          paddingBottom: 20,
+          paddingHorizontal: 20,
+          width: '85%',
+          maxWidth: 340,
+          alignItems: 'center',
+          gap: 20,
+        }}
+      >
             {/* 포인트 + 제목 + 안내 문구 묶음 */}
             <View style={{ alignItems: 'center', gap: 12 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
@@ -298,9 +268,7 @@ export default function StoreDetailScreen() {
                 </Text>
               </Pressable>
             </View>
-          </View>
-        </View>
-      )}
+      </OverlayModal>
       <ScrollView style={{ flex: 1 }} contentContainerStyle={{ paddingBottom: 100, gap: 28 }}>
         {/* 헤더 */}
         <View

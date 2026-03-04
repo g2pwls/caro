@@ -13,16 +13,16 @@ import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import CouponTab from '@/components/common/Category/CouponTab';
 import CategoryTab from '@/components/common/Category/CategoryTab';
+import { OverlayModal } from '@/components/common/Modal/OverlayModal';
 import { ContentState } from '@/components/common/State/ContentState';
+import { useMemberPoints } from '@/hooks/store/useMemberPoints';
 import { useAuthStore } from '@/stores/authStore';
 import {
   fetchRewardCategories,
   fetchRewardCoupons,
-  fetchMemberPoints,
   fetchPointHistory,
   fetchMemberCoupons,
   fetchMemberCouponDetail,
-  type MemberPoints,
   type RewardCategory,
   type RewardCoupon,
   type PointHistory,
@@ -498,7 +498,7 @@ export default function StoreScreen() {
   const router = useRouter();
   const params = useLocalSearchParams();
   const { accessToken } = useAuthStore();
-  const [memberPoints, setMemberPoints] = useState<MemberPoints | null>(null);
+  const { memberPoints } = useMemberPoints({ accessToken });
 
   const rewardTabs = useMemo(
     () => [
@@ -532,15 +532,6 @@ export default function StoreScreen() {
   const [couponTotalCount, setCouponTotalCount] = useState(0);
   const [couponDetail, setCouponDetail] = useState<MemberCouponDetail | null>(null);
   const [isPointCardExpanded, setIsPointCardExpanded] = useState(false);
-
-  // API에서 포인트 정보 가져오기
-  useEffect(() => {
-    if (accessToken) {
-      fetchMemberPoints()
-        .then(setMemberPoints)
-        .catch((err) => console.warn('포인트 조회 실패:', err));
-    }
-  }, [accessToken]);
 
   // API에서 리워드 카테고리 가져오기
   useEffect(() => {
@@ -641,26 +632,19 @@ export default function StoreScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor }}>
       {/* 쿠폰 사용 모달 */}
-      {isCouponModalOpen && (
-        <View style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 100, backgroundColor: 'rgba(0,0,0,0.5)', justifyContent: 'center', alignItems: 'center' }}>
-          {/* 배경 터치 영역 */}
-          <Pressable
-            style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 }}
-            onPress={closeCouponModal}
-          />
-          
-          {/* 모달 카드 */}
-          <View
-            style={{
-              backgroundColor: colors.coolNeutral[10],
-              borderRadius: 20,
-              paddingTop: 20,
-              paddingBottom: 24,
-              paddingHorizontal: 20,
-              width: '100%',
-              maxWidth: 355,
-            }}
-          >
+      <OverlayModal
+        visible={isCouponModalOpen}
+        onBackdropPress={closeCouponModal}
+        contentStyle={{
+          backgroundColor: colors.coolNeutral[10],
+          borderRadius: 20,
+          paddingTop: 20,
+          paddingBottom: 24,
+          paddingHorizontal: 20,
+          width: '100%',
+          maxWidth: 355,
+        }}
+      >
             {/* X 아이콘 영역 */}
             <View
               style={{
@@ -1088,9 +1072,7 @@ export default function StoreScreen() {
                 </View>
               )}
             </ScrollView>
-          </View>
-        </View>
-      )}
+      </OverlayModal>
 
       <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ alignItems: 'stretch', paddingBottom: 16 }}>
         <View style={{ width: '100%' }}>
