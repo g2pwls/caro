@@ -13,7 +13,7 @@ import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import CouponTab from '@/components/common/Category/CouponTab';
 import { OverlayModal } from '@/components/common/Modal/OverlayModal';
-import { CompactCouponUsageGuide } from '@/components/store/CouponGuide';
+import { StoreCouponUseModal } from '@/components/store/modals/StoreCouponUseModal';
 import {
   StoreCouponSection,
   StorePointHistorySection,
@@ -28,8 +28,6 @@ import {
   type MemberCouponDetail,
 } from '@/services/rewardService';
 import {
-  formatDateDotSeparated,
-  formatDateKoreanWithUntil,
   formatDateOnly,
 } from '@/utils/date';
 import { getTabRoute } from '@/utils/navigation';
@@ -38,7 +36,6 @@ import { toRewardImageUrl } from '@/utils/rewardImage';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import WDownIcon from '@/assets/icons/wdown.svg';
-import XIcon from '@/assets/icons/x_icon.svg';
 import PointIcon from '@/assets/icons/point.svg';
 import Coffee1Icon from '@/assets/icons/coffee1.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
@@ -585,343 +582,16 @@ export default function StoreScreen() {
           maxWidth: 355,
         }}
       >
-            {/* X 아이콘 영역 */}
-            <View
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'flex-end',
-                marginBottom: 20,
-              }}
-            >
-              <Pressable
-                onPress={closeCouponModal}
-                hitSlop={8}
-                accessibilityRole="button"
-                accessibilityLabel="close-modal"
-              >
-                <XIcon width={24} height={24} />
-              </Pressable>
-            </View>
-            <ScrollView showsVerticalScrollIndicator={false}>
-              {selectedCoupon && !isBarcodeLarge && (
-                <View style={{ gap: 16 }}>
-                  {/* 쿠폰 상단 영역 */}
-                  <View
-                    style={{
-                      alignItems: 'center',
-                      gap: 24,
-                    }}
-                  >
-                    {/* 쿠폰 제목 */}
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.h2Semibold,
-                        color: colors.coolNeutral[90],
-                        textAlign: 'center',
-                      }}
-                    >
-                      {couponDetail
-                        ? `[${couponDetail.brandName}]\n${couponDetail.itemName}`
-                        : `[${selectedCoupon.brandName}]\n${selectedCoupon.itemName}`}
-                    </Text>
-
-                    {/* 브랜드 로고 */}
-                    {couponDetail?.imageUrl ? (
-                      <Image
-                        source={{ uri: toRewardImageUrl(couponDetail.imageUrl) }}
-                        style={{ width: 80, height: 80, borderRadius: 40 }}
-                        resizeMode="cover"
-                      />
-                    ) : (
-                      <View
-                        style={{
-                          width: 80,
-                          height: 80,
-                          borderRadius: 40,
-                          backgroundColor: '#00704A',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                        }}
-                      >
-                        <Text style={{ color: '#fff', fontSize: 10, fontWeight: 'bold' }}>
-                          {selectedCoupon.brandName}
-                        </Text>
-                      </View>
-                    )}
-
-                    {/* 바코드 */}
-                    <View
-                      style={{
-                        width: '100%',
-                        backgroundColor: colors.background.default,
-                        borderRadius: borderRadius.md,
-                        borderWidth: 1,
-                        borderColor: colors.coolNeutral[20],
-                        paddingVertical: 24,
-                        paddingHorizontal: 20,
-                        alignItems: 'center',
-                        gap: 8,
-                      }}
-                    >
-                      {Barcode ? (
-                        <Barcode
-                          value={couponDetail?.barcodeNumber || String(selectedCoupon.id)}
-                          format="CODE128"
-                          height={52}
-                          maxWidth={280}
-                          singleBarWidth={2}
-                          lineColor="#000000"
-                          backgroundColor="#FFFFFF"
-                          onError={(err: Error) => console.log('Barcode error:', err)}
-                        />
-                      ) : (
-                        <View style={{ height: 52, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ fontFamily: typography.fontFamily.pretendard, ...typography.styles.body2Medium, color: colors.coolNeutral[60], letterSpacing: 4 }}>
-                            {couponDetail?.barcodeNumber || selectedCoupon.id}
-                          </Text>
-                        </View>
-                      )}
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body3Medium,
-                          color: colors.coolNeutral[80],
-                        }}
-                      >
-                        {couponDetail?.barcodeNumber || selectedCoupon.id}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* 쿠폰 정보 */}
-                  <View style={{ gap: 12 }}>
-                    {/* 유효기간 */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text
-                        style={{
-                          width: 70,
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body3Regular,
-                          color: colors.coolNeutral[50],
-                        }}
-                      >
-                        유효기간
-                      </Text>
-                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1, justifyContent: 'flex-end' }}>
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.coolNeutral[90],
-                          }}
-                        >
-                          {formatDateKoreanWithUntil(couponDetail?.expiredAt || selectedCoupon.expiredAt)}
-                        </Text>
-                        <View
-                          style={{
-                            backgroundColor: colors.red[40],
-                            borderRadius: borderRadius.base,
-                            paddingHorizontal: 8,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontFamily: typography.fontFamily.pretendard,
-                              ...typography.styles.body2Bold,
-                              color: colors.coolNeutral[10],
-                            }}
-                          >
-                            D-{getDaysRemaining(couponDetail?.expiredAt || selectedCoupon.expiredAt)}
-                          </Text>
-                        </View>
-                      </View>
-                    </View>
-
-                    {/* 사용처 */}
-                    <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                      <Text
-                        style={{
-                          width: 70,
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body3Regular,
-                          color: colors.coolNeutral[50],
-                        }}
-                      >
-                        사용처
-                      </Text>
-                      <Text
-                        style={{
-                          flex: 1,
-                          textAlign: 'right',
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body2Semibold,
-                          color: colors.coolNeutral[90],
-                        }}
-                      >
-                        {(couponDetail?.brandName || selectedCoupon.brandName)} 모든 매장
-                      </Text>
-                    </View>
-
-                    {/* 교환일 */}
-                    {couponDetail?.exchangedAt && (
-                      <View style={{ flexDirection: 'row', alignItems: 'center' }}>
-                        <Text
-                          style={{
-                            width: 70,
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Regular,
-                            color: colors.coolNeutral[50],
-                          }}
-                        >
-                          교환일
-                        </Text>
-                        <Text
-                          style={{
-                            flex: 1,
-                            textAlign: 'right',
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body2Semibold,
-                            color: colors.coolNeutral[90],
-                          }}
-                        >
-                          {formatDateDotSeparated(couponDetail.exchangedAt)}
-                        </Text>
-                      </View>
-                    )}
-                  </View>
-
-                  {/* 바코드 크게 보기 버튼 + 사용 안내 */}
-                  <View style={{ gap: 24 }}>
-                    <Pressable
-                      onPress={() => setIsBarcodeLarge(true)}
-                      style={{
-                        width: '100%',
-                        height: 52,
-                        borderRadius: borderRadius.md,
-                        backgroundColor: colors.primary[50],
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                      }}
-                    >
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body2Semibold,
-                          color: colors.coolNeutral[10],
-                        }}
-                      >
-                        바코드 크게 보기
-                      </Text>
-                    </Pressable>
-
-                    {/* 사용 안내 */}
-                    <View>
-                      <CompactCouponUsageGuide
-                        expanded={isUsageGuideExpanded}
-                        onExpand={() => setIsUsageGuideExpanded(true)}
-                        onCollapse={() => setIsUsageGuideExpanded(false)}
-                      />
-                    </View>
-                  </View>
-                </View>
-              )}
-
-              {/* 바코드 크게 보기 */}
-              {selectedCoupon && isBarcodeLarge && (
-                <View style={{ gap: 24 }}>
-                  {/* 쿠폰 제목 */}
-                  <Text
-                    style={{
-                      fontFamily: typography.fontFamily.pretendard,
-                      ...typography.styles.h2Semibold,
-                      color: colors.coolNeutral[90],
-                      textAlign: 'center',
-                    }}
-                  >
-                      {couponDetail
-                        ? `[${couponDetail.brandName}]\n${couponDetail.itemName}`
-                        : `[${selectedCoupon.brandName}]\n${selectedCoupon.itemName}`}
-                  </Text>
-
-                  {/* 큰 바코드 */}
-                  <View
-                    style={{
-                      width: '100%',
-                      backgroundColor: colors.background.default,
-                      borderRadius: borderRadius.md,
-                      borderWidth: 1,
-                      borderColor: colors.coolNeutral[20],
-                      paddingVertical: 40,
-                      paddingHorizontal: 20,
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      minHeight: 370,
-                    }}
-                  >
-                    {/* 바코드 + 번호 전체를 90도 오른쪽으로 회전 */}
-                    <View
-                      style={{
-                        transform: [{ rotate: '90deg' }],
-                        alignItems: 'center',
-                        gap: 8,
-                      }}
-                    >
-                      {Barcode ? (
-                        <Barcode
-                          value={couponDetail?.barcodeNumber || String(selectedCoupon.id)}
-                          format="CODE128"
-                          height={150}
-                          maxWidth={310}
-                          singleBarWidth={5}
-                          lineColor="#000000"
-                          backgroundColor="#FFFFFF"
-                          onError={(err: Error) => console.log('Barcode error:', err)}
-                        />
-                      ) : (
-                        <View style={{ height: 150, justifyContent: 'center', alignItems: 'center' }}>
-                          <Text style={{ fontFamily: typography.fontFamily.pretendard, ...typography.styles.h2Semibold, color: colors.coolNeutral[60], letterSpacing: 6 }}>
-                            {couponDetail?.barcodeNumber || selectedCoupon.id}
-                          </Text>
-                        </View>
-                      )}
-                      <Text
-                        style={{
-                          fontFamily: typography.fontFamily.pretendard,
-                          ...typography.styles.body2Medium,
-                          color: colors.coolNeutral[80],
-                        }}
-                      >
-                        {couponDetail?.barcodeNumber || selectedCoupon.id}
-                      </Text>
-                    </View>
-                  </View>
-
-                  {/* 바코드 작게 보기 버튼 */}
-                  <Pressable
-                    onPress={() => setIsBarcodeLarge(false)}
-                    style={{
-                      width: '100%',
-                      height: 52,
-                      borderRadius: borderRadius.md,
-                      backgroundColor: colors.primary[50],
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                    }}
-                  >
-                    <Text
-                      style={{
-                        fontFamily: typography.fontFamily.pretendard,
-                        ...typography.styles.body2Semibold,
-                        color: colors.coolNeutral[10],
-                      }}
-                    >
-                      바코드 작게 보기
-                    </Text>
-                  </Pressable>
-                </View>
-              )}
-            </ScrollView>
+        <StoreCouponUseModal
+          selectedCoupon={selectedCoupon}
+          couponDetail={couponDetail}
+          isBarcodeLarge={isBarcodeLarge}
+          isUsageGuideExpanded={isUsageGuideExpanded}
+          onClose={closeCouponModal}
+          onSetBarcodeLarge={setIsBarcodeLarge}
+          onSetUsageGuideExpanded={setIsUsageGuideExpanded}
+          BarcodeComponent={Barcode}
+        />
       </OverlayModal>
 
       <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ alignItems: 'stretch', paddingBottom: 16 }}>
