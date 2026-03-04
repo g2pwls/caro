@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Platform, Pressable, ScrollView, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -7,7 +7,7 @@ let Barcode: any = null;
 if (Platform.OS !== 'web') {
   Barcode = require('react-native-barcode-svg').default;
 }
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 
 import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
@@ -20,6 +20,7 @@ import {
   StorePointHistorySection,
   StoreProductsSection,
 } from '@/components/store/sections/StoreTabSections';
+import { StoreDetailSection } from '@/components/store/sections/StoreDetailSection';
 import { useStoreScreenData } from '@/hooks/store/useStoreScreenData';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -32,11 +33,10 @@ import {
   formatDateOnly,
 } from '@/utils/date';
 import { getTabRoute } from '@/utils/navigation';
-import { formatPointDelta, formatPointNumber, formatPointTotal } from '@/utils/points';
+import { formatPointDelta, formatPointNumber } from '@/utils/points';
 import { toRewardImageUrl } from '@/utils/rewardImage';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
-import WDownIcon from '@/assets/icons/wdown.svg';
 import PointIcon from '@/assets/icons/point.svg';
 import Coffee1Icon from '@/assets/icons/coffee1.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
@@ -358,7 +358,6 @@ function PointHistoryCard({ item }: { item: PointHistory }) {
 
 export default function StoreScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams();
   const { accessToken } = useAuthStore();
 
   const rewardTabs = useMemo(
@@ -370,13 +369,6 @@ export default function StoreScreen() {
     [],
   );
   const [selectedTab, setSelectedTab] = useState<string>(rewardTabs[0]?.id ?? 'store');
-
-  // 외부에서 tab 파라미터로 탭 전환
-  useEffect(() => {
-    if (params.tab && typeof params.tab === 'string') {
-      setSelectedTab(params.tab);
-    }
-  }, [params.tab]);
   const [storeCategory, setStoreCategory] = useState<StoreCategoryKey>('ALL');
   const [visibleHistoryCount, setVisibleHistoryCount] = useState(4);
   const [visibleCouponCount, setVisibleCouponCount] = useState(4);
@@ -386,6 +378,7 @@ export default function StoreScreen() {
   const [isBarcodeLarge, setIsBarcodeLarge] = useState(false);
   const [couponDetail, setCouponDetail] = useState<MemberCouponDetail | null>(null);
   const [isPointCardExpanded, setIsPointCardExpanded] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<RewardCoupon | null>(null);
 
   const {
     storeCategories,
@@ -424,17 +417,12 @@ export default function StoreScreen() {
     setIsBarcodeLarge(false);
   };
 
-  const navigateToDetail = (product: RewardCoupon) => {
-    router.push({
-      pathname: '/store-detail',
-      params: {
-        id: product.id.toString(),
-        brand: product.brandName,
-        name: product.itemName,
-        price: product.requiredPoints.toString(),
-        imageUrl: product.imageUrl,
-      },
-    });
+  const handleOpenDetail = (product: RewardCoupon) => {
+    setSelectedProduct(product);
+  };
+
+  const handleCloseDetail = () => {
+    setSelectedProduct(null);
   };
 
   const pointCardElement = (
@@ -473,90 +461,96 @@ export default function StoreScreen() {
           BarcodeComponent={Barcode}
         />
       </OverlayModal>
-
-      <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ alignItems: 'stretch', paddingBottom: 16 }}>
-        <View style={{ width: '100%' }}>
-          {/* 헤더 */}
-          <View
-            style={{
-              paddingVertical: 12,
-              paddingHorizontal: 20,
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: 8,
-            }}
-          >
-            <Pressable
-              onPress={() => router.back()}
-              style={{ width: 24, height: 24, justifyContent: 'center' }}
-              accessibilityRole="button"
-              accessibilityLabel="back"
-            >
-              <ArrowLeftIcon width={24} height={24} />
-            </Pressable>
-
-            <Text
+      {selectedProduct ? (
+        <StoreDetailSection
+          product={selectedProduct}
+          accessToken={accessToken}
+          onBack={handleCloseDetail}
+          onExchanged={() => setSelectedTab('coupon')}
+        />
+      ) : (
+        <ScrollView style={{ flex: 1, width: '100%' }} contentContainerStyle={{ alignItems: 'stretch', paddingBottom: 16 }}>
+          <View style={{ width: '100%' }}>
+            <View
               style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.h3Semibold,
-                color: colors.coolNeutral[90],
+                paddingVertical: 12,
+                paddingHorizontal: 20,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
               }}
             >
-              리워드
-            </Text>
+              <Pressable
+                onPress={() => router.back()}
+                style={{ width: 24, height: 24, justifyContent: 'center' }}
+                accessibilityRole="button"
+                accessibilityLabel="back"
+              >
+                <ArrowLeftIcon width={24} height={24} />
+              </Pressable>
+
+              <Text
+                style={{
+                  fontFamily: typography.fontFamily.pretendard,
+                  ...typography.styles.h3Semibold,
+                  color: colors.coolNeutral[90],
+                }}
+              >
+                리워드
+              </Text>
+            </View>
+
+            <CouponTab tabs={rewardTabs} selectedTab={selectedTab} onTabChange={setSelectedTab} />
+
+            {selectedTab === 'store' ? (
+              <StoreProductsSection
+                pointCard={pointCardElement}
+                storeCategory={storeCategory}
+                storeCategories={storeCategories}
+                onSelectCategory={setStoreCategory}
+                couponsLoading={couponsLoading}
+                rewardCoupons={rewardCoupons}
+                renderProductCard={(product) => (
+                  <ProductCard
+                    product={product}
+                    onPress={() => handleOpenDetail(product)}
+                  />
+                )}
+              />
+            ) : selectedTab === 'point' ? (
+              <StorePointHistorySection
+                pointCard={pointCardElement}
+                historyTotalCount={historyTotalCount}
+                pointHistories={pointHistories}
+                visibleHistoryCount={visibleHistoryCount}
+                onMoreHistory={() => {
+                  setVisibleHistoryCount((prev) => Math.min(prev + 4, pointHistories.length));
+                }}
+                renderHistoryCard={(item, index) => (
+                  <PointHistoryCard key={`${item.date}-${index}`} item={item} />
+                )}
+              />
+            ) : selectedTab === 'coupon' ? (
+              <StoreCouponSection
+                pointCard={pointCardElement}
+                couponTotalCount={couponTotalCount}
+                memberCoupons={memberCoupons}
+                visibleCouponCount={visibleCouponCount}
+                onMoreCoupons={() => {
+                  setVisibleCouponCount((prev) => Math.min(prev + 4, memberCoupons.length));
+                }}
+                renderCouponCard={(coupon) => (
+                  <CouponCard
+                    key={coupon.id}
+                    coupon={coupon}
+                    onUse={() => handleCouponUse(coupon)}
+                  />
+                )}
+              />
+            ) : null}
           </View>
-
-          {/* 탭 */}
-          <CouponTab tabs={rewardTabs} selectedTab={selectedTab} onTabChange={setSelectedTab} />
-
-          {selectedTab === 'store' ? (
-            <StoreProductsSection
-              pointCard={pointCardElement}
-              storeCategory={storeCategory}
-              storeCategories={storeCategories}
-              onSelectCategory={setStoreCategory}
-              couponsLoading={couponsLoading}
-              rewardCoupons={rewardCoupons}
-              renderProductCard={(product) => (
-                <ProductCard
-                  product={product}
-                  onPress={() => navigateToDetail(product)}
-                />
-              )}
-            />
-          ) : selectedTab === 'point' ? (
-            <StorePointHistorySection
-              pointCard={pointCardElement}
-              historyTotalCount={historyTotalCount}
-              pointHistories={pointHistories}
-              visibleHistoryCount={visibleHistoryCount}
-              onMoreHistory={() => {
-                setVisibleHistoryCount((prev) => Math.min(prev + 4, pointHistories.length));
-              }}
-              renderHistoryCard={(item, index) => (
-                <PointHistoryCard key={`${item.date}-${index}`} item={item} />
-              )}
-            />
-          ) : selectedTab === 'coupon' ? (
-            <StoreCouponSection
-              pointCard={pointCardElement}
-              couponTotalCount={couponTotalCount}
-              memberCoupons={memberCoupons}
-              visibleCouponCount={visibleCouponCount}
-              onMoreCoupons={() => {
-                setVisibleCouponCount((prev) => Math.min(prev + 4, memberCoupons.length));
-              }}
-              renderCouponCard={(coupon) => (
-                <CouponCard
-                  key={coupon.id}
-                  coupon={coupon}
-                  onUse={() => handleCouponUse(coupon)}
-                />
-              )}
-            />
-          ) : null}
-        </View>
-      </ScrollView>
+        </ScrollView>
+      )}
 
       <NavigationBar
         active="store"
