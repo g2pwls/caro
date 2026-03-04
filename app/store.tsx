@@ -15,6 +15,7 @@ import CouponTab from '@/components/common/Category/CouponTab';
 import CategoryTab from '@/components/common/Category/CategoryTab';
 import { OverlayModal } from '@/components/common/Modal/OverlayModal';
 import { ContentState } from '@/components/common/State/ContentState';
+import { CompactCouponUsageGuide } from '@/components/store/CouponGuide';
 import { useMemberPoints } from '@/hooks/store/useMemberPoints';
 import { useAuthStore } from '@/stores/authStore';
 import {
@@ -41,9 +42,7 @@ import { toRewardImageUrl } from '@/utils/rewardImage';
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import DownIcon from '@/assets/icons/DownIcon.svg';
 import WDownIcon from '@/assets/icons/wdown.svg';
-import UpIcon from '@/assets/icons/UpIcon.svg';
 import XIcon from '@/assets/icons/x_icon.svg';
-import BlueDotIcon from '@/assets/icons/bluedot.svg';
 import PointIcon from '@/assets/icons/point.svg';
 import Coffee1Icon from '@/assets/icons/coffee1.svg';
 import CalendarIcon from '@/assets/icons/calendar.svg';
@@ -877,101 +876,11 @@ export default function StoreScreen() {
 
                     {/* 사용 안내 */}
                     <View>
-                    {!isUsageGuideExpanded ? (
-                      // 접혀있을 때: "사용 안내 v" 버튼
-                      <Pressable
-                        onPress={() => setIsUsageGuideExpanded(true)}
-                        style={{
-                          flexDirection: 'row',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          gap: 4,
-                        }}
-                      >
-                        <Text
-                          style={{
-                            fontFamily: typography.fontFamily.pretendard,
-                            ...typography.styles.body3Medium,
-                            color: colors.coolNeutral[50],
-                          }}
-                        >
-                          사용 안내
-                        </Text>
-                        <DownIcon width={16} height={16} />
-                      </Pressable>
-                    ) : (
-                      // 펼쳐졌을 때: 내용 카드 + "접기 ^" 버튼
-                      <View style={{ gap: 8 }}>
-                        {/* 내용 카드 */}
-                        <View
-                          style={{
-                            backgroundColor: colors.coolNeutral[20],
-                            borderRadius: borderRadius.lg,
-                            padding: 20,
-                            gap: 8,
-                          }}
-                        >
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <BlueDotIcon width={4} height={4} />
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body3Regular,
-                                color: colors.coolNeutral[50],
-                              }}
-                            >
-                              결제 시 바코드를 제시해주세요.
-                            </Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <BlueDotIcon width={4} height={4} />
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body3Regular,
-                                color: colors.coolNeutral[50],
-                              }}
-                            >
-                              다른 쿠폰과 중복 사용 불가해요
-                            </Text>
-                          </View>
-                          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-                            <BlueDotIcon width={4} height={4} />
-                            <Text
-                              style={{
-                                fontFamily: typography.fontFamily.pretendard,
-                                ...typography.styles.body3Regular,
-                                color: colors.coolNeutral[50],
-                              }}
-                            >
-                              유효기간 경과 시 자동 소멸 되어요.
-                            </Text>
-                          </View>
-                        </View>
-
-                        {/* 접기 버튼 */}
-                        <Pressable
-                          onPress={() => setIsUsageGuideExpanded(false)}
-                          style={{
-                            flexDirection: 'row',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            gap: 4,
-                          }}
-                        >
-                          <Text
-                            style={{
-                              fontFamily: typography.fontFamily.pretendard,
-                              ...typography.styles.body3Medium,
-                              color: colors.coolNeutral[50],
-                            }}
-                          >
-                            접기
-                          </Text>
-                          <UpIcon width={16} height={16} />
-                        </Pressable>
-                      </View>
-                    )}
+                      <CompactCouponUsageGuide
+                        expanded={isUsageGuideExpanded}
+                        onExpand={() => setIsUsageGuideExpanded(true)}
+                        onCollapse={() => setIsUsageGuideExpanded(false)}
+                      />
                     </View>
                   </View>
                 </View>

@@ -6,6 +6,7 @@ import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
 import { MainButton } from '@/components/common/Button/MainButton';
 import { OverlayModal } from '@/components/common/Modal/OverlayModal';
+import { StoreDetailCouponGuide } from '@/components/store/CouponGuide';
 import { Toast } from '@/components/common/Toast';
 import { useMemberPoints } from '@/hooks/store/useMemberPoints';
 import { useAuthStore } from '@/stores/authStore';
@@ -16,111 +17,7 @@ import { toRewardImageUrl } from '@/utils/rewardImage';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import PointIcon from '@/assets/icons/point.svg';
-import UpIcon from '@/assets/icons/UpIcon.svg';
-import DownIcon from '@/assets/icons/DownIcon.svg';
 import Coffee1Icon from '@/assets/icons/coffee1.svg';
-import OneIcon from '@/assets/icons/one.svg';
-import TwoIcon from '@/assets/icons/two.svg';
-import ThreeIcon from '@/assets/icons/three.svg';
-import FourIcon from '@/assets/icons/four.svg';
-
-// 아코디언 섹션 컴포넌트
-function AccordionSection({
-  title,
-  children,
-  defaultOpen = false,
-}: {
-  title: string;
-  children: React.ReactNode;
-  defaultOpen?: boolean;
-}) {
-  const [isOpen, setIsOpen] = useState(defaultOpen);
-
-  return (
-    <View style={{ gap: 20 }}>
-      <Pressable
-        onPress={() => setIsOpen(!isOpen)}
-        style={{
-          flexDirection: 'row',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          paddingBottom: 16,
-          borderBottomWidth: 1,
-          borderBottomColor: colors.coolNeutral[30],
-        }}
-      >
-        <Text
-          style={{
-            fontFamily: typography.fontFamily.pretendard,
-            ...typography.styles.body2Bold,
-            color: colors.coolNeutral[80],
-          }}
-        >
-          {title}
-        </Text>
-        {isOpen ? (
-          <UpIcon width={20} height={20} />
-        ) : (
-          <DownIcon width={20} height={20} />
-        )}
-      </Pressable>
-      {isOpen && <View>{children}</View>}
-    </View>
-  );
-}
-
-// 쿠폰 사용 방법 아이템
-function BulletItem({ text }: { text: string }) {
-  return (
-    <View style={{ flexDirection: 'row' }}>
-      <Text
-        style={{
-          fontFamily: typography.fontFamily.pretendard,
-          ...typography.styles.body3Medium,
-          color: colors.coolNeutral[40],
-          flex: 1,
-        }}
-      >
-        •  {text}
-      </Text>
-    </View>
-  );
-}
-
-// 번호 아이콘 컴포넌트
-function NumberIcon({ number }: { number: number }) {
-  switch (number) {
-    case 1:
-      return <OneIcon width={16} height={16} />;
-    case 2:
-      return <TwoIcon width={16} height={16} />;
-    case 3:
-      return <ThreeIcon width={16} height={16} />;
-    case 4:
-      return <FourIcon width={16} height={16} />;
-    default:
-      return <OneIcon width={16} height={16} />;
-  }
-}
-
-// 번호 아이템
-function NumberedItem({ number, text }: { number: number; text: string }) {
-  return (
-    <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
-      <NumberIcon number={number} />
-      <Text
-        style={{
-          fontFamily: typography.fontFamily.pretendard,
-          ...typography.styles.body3Medium,
-          color: colors.coolNeutral[40],
-          flex: 1,
-        }}
-      >
-        {text}
-      </Text>
-    </View>
-  );
-}
 
 export default function StoreDetailScreen() {
   const router = useRouter();
@@ -390,39 +287,7 @@ export default function StoreDetailScreen() {
           />
 
           {/* 아코디언 섹션들 */}
-          <View style={{ gap: 24 }}>
-          {/* 쿠폰 및 이용 안내 */}
-          <AccordionSection title="쿠폰 및 이용 안내" defaultOpen={true}>
-            <View style={{ gap: 12 }}>
-              <BulletItem text="포인트로 교환하면 모바일 쿠폰으로 바로 지급돼요." />
-              <BulletItem text="교환 완료 후에는 취소나 환불이 어려워요." />
-              <BulletItem text="쿠폰은 발급일 기준 30일 동안 사용 가능해요." />
-              <BulletItem text="일부 매장에서는 사용이 제한될 수 있어요." />
-              <BulletItem text="매장 상황에 따라 조기 품절될 수 있어요." />
-            </View>
-          </AccordionSection>
-
-          {/* 쿠폰 사용 방법 */}
-          <AccordionSection title="쿠폰 사용 방법" defaultOpen={true}>
-            <View style={{ gap: 12 }}>
-              <NumberedItem number={1} text="'교환하기' 버튼을 눌러주세요." />
-              <NumberedItem number={2} text="마이페이지 > 내 쿠폰함에서 확인!" />
-              <NumberedItem number={3} text="매장에서 직원에게 쿠폰 화면 보여주기" />
-              <NumberedItem number={4} text="바코드 스캔 후 바로 사용 완료!" />
-            </View>
-          </AccordionSection>
-
-          {/* 사용 전 꼭 확인해주세요! */}
-          <AccordionSection title="사용 전 꼭 확인해주세요!" defaultOpen={true}>
-            <View style={{ gap: 12 }}>
-              <BulletItem text="쿠폰은 다른 사람에게 양도할 수 없어요." />
-              <BulletItem text="사용하지 않은 쿠폰은 재발급되지 않아요." />
-              <BulletItem text="네트워크 문제로 발급이 늦어질 수 있어요." />
-              <BulletItem text="현금으로 바꿀 수 없어요." />
-              <BulletItem text="운영 정책에 따라 내용이 바뀔 수 있어요." />
-            </View>
-          </AccordionSection>
-              </View>
+          <StoreDetailCouponGuide />
             </View>
           </View>
         </View>
