@@ -4,15 +4,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { borderRadius, colors, typography } from '@/theme';
 import { NavigationBar } from '@/components/common/Bar/NavigationBar';
+import { DriveRecordCard } from '@/components/car/cards/DriveRecordCard';
 import { CarDatePickerModal } from '@/components/car/modals/CarDatePickerModal';
+import { CarStatCell } from '@/components/car/parts/CarStatCell';
 import { ContentState } from '@/components/common/State/ContentState';
 import { useAuthStore } from '@/stores/authStore';
 import { useDrivingRecordStore } from '@/stores/drivingRecordStore';
-import type { DrivingRecord } from '@/types/drivingRecord';
 import {
-  formatDateWithDay,
   formatMonthKoreanFromYm,
-  formatTimeHHMM,
   formatYearMonthKorean,
   formatYearMonthKoreanFromYm,
   toYearMonth,
@@ -21,223 +20,7 @@ import { getTabRoute } from '@/utils/navigation';
 
 import ArrowLeftIcon from '@/assets/icons/arrow-left.svg';
 import SearchIcon from '@/assets/icons/search.svg';
-import GCarIcon from '@/assets/icons/gcar.svg';
 import PointIcon from '@/assets/icons/point.svg';
-
-const TAG_MIN_WIDTH = 44;
-
-function formatDistanceLabel(distanceKm: number): string {
-  return `${distanceKm.toFixed(1)} km`;
-}
-
-function formatEarnedPointsLabel(points: number): string {
-  return `+ ${points.toLocaleString()}`;
-}
-
-function formatCarModel(brandName: string, modelName: string, variantName: string): string {
-  const parts = [brandName, modelName, variantName].filter(Boolean);
-  return parts.join(' ');
-}
-
-function CoinCMark({ size = 14 }: { size?: number }) {
-  return <PointIcon width={size} height={size} />;
-}
-
-function StatCell({ label, value, valueNode }: { label: string; value?: string; valueNode?: React.ReactNode }) {
-  return (
-    <View style={{ flex: 1, alignItems: 'center', gap: 8 }}>
-      <Text
-        style={{
-          fontFamily: typography.fontFamily.pretendard,
-          ...typography.styles.body2Medium,
-          color: colors.primary[50],
-        }}
-      >
-        {label}
-      </Text>
-      {valueNode ?? (
-        <Text
-          style={{
-            fontFamily: typography.fontFamily.pretendard,
-            ...typography.styles.h2Semibold,
-            color: colors.primary[50],
-          }}
-        >
-          {value}
-        </Text>
-      )}
-    </View>
-  );
-}
-
-function Tag({ label }: { label: '출발' | '도착' }) {
-  return (
-    <View
-      style={{
-        height: 24,
-        minWidth: TAG_MIN_WIDTH,
-        paddingHorizontal: 8,
-        borderRadius: 999,
-        backgroundColor: colors.primary[50],
-        alignItems: 'center',
-        justifyContent: 'center',
-      }}
-    >
-      <Text
-        style={{
-          fontFamily: typography.fontFamily.pretendard,
-          ...typography.styles.body2Semibold,
-          color: colors.coolNeutral[10],
-        }}
-      >
-        {label}
-      </Text>
-    </View>
-  );
-}
-
-function DriveRecordCard({ item, onPress }: { item: DrivingRecord; onPress?: () => void }) {
-  const dateLabel = formatDateWithDay(item.startDateTime);
-  const earnedLabel = formatEarnedPointsLabel(item.earnedPoints);
-  const startTime = formatTimeHHMM(item.startDateTime);
-  const endTime = formatTimeHHMM(item.endDateTime);
-  const distanceLabel = formatDistanceLabel(item.distanceKm);
-  const carModel = formatCarModel(item.vehicleBrandName, item.vehicleModelName, item.vehicleVariantName);
-
-  return (
-    <Pressable
-      onPress={onPress}
-      style={{
-        width: '100%',
-        backgroundColor: colors.coolNeutral[10],
-        borderRadius: borderRadius.lg,
-        paddingHorizontal: 20,
-        paddingVertical: 20,
-        gap: 8,
-      }}
-    >
-      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-        <Text
-          style={{
-            fontFamily: typography.fontFamily.pretendard,
-            ...typography.styles.body1Semibold,
-            color: colors.coolNeutral[80],
-          }}
-        >
-          {dateLabel}
-        </Text>
-        {item.earnedPoints > 0 && (
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-            <Text
-              style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.h3Semibold,
-                color: colors.primary[50],
-              }}
-            >
-              {earnedLabel}
-            </Text>
-            <CoinCMark size={14} />
-          </View>
-        )}
-      </View>
-
-      <View style={{ gap: 8 }}>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <Tag label="출발" />
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text
-              style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.body2Medium,
-                color: colors.coolNeutral[60],
-              }}
-            >
-              {startTime}
-            </Text>
-            <Text
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              style={{
-                flex: 1,
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.body2Medium,
-                color: colors.coolNeutral[40],
-              }}
-            >
-              {item.startLocation}
-            </Text>
-          </View>
-        </View>
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-          <Tag label="도착" />
-          <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-            <Text
-              style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.body2Medium,
-                color: colors.coolNeutral[60],
-              }}
-            >
-              {endTime}
-            </Text>
-            <Text
-              numberOfLines={1}
-              ellipsizeMode="tail"
-              style={{
-                flex: 1,
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.body2Medium,
-                color: colors.coolNeutral[40],
-              }}
-            >
-              {item.endLocation}
-            </Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 20 }}>
-        {/* 출발/도착 태그 자리만큼 앞 공간 */}
-        <View style={{ width: TAG_MIN_WIDTH, height: 24 }} />
-
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-          <Text
-            style={{
-              fontFamily: typography.fontFamily.pretendard,
-              ...typography.styles.body3Semibold,
-              color: colors.coolNeutral[40],
-            }}
-          >
-            {distanceLabel}
-          </Text>
-          <Text
-            style={{
-              fontFamily: typography.fontFamily.pretendard,
-              ...typography.styles.body3Semibold,
-              color: colors.coolNeutral[40],
-            }}
-          >
-            |
-          </Text>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
-            <GCarIcon width={16} height={16} />
-            <Text
-              style={{
-                fontFamily: typography.fontFamily.pretendard,
-                ...typography.styles.body3Semibold,
-                color: colors.coolNeutral[40],
-              }}
-            >
-              {carModel}
-            </Text>
-          </View>
-        </View>
-      </View>
-    </Pressable>
-  );
-}
 
 export default function CarScreen() {
   const router = useRouter();
@@ -348,9 +131,9 @@ export default function CarScreen() {
                       gap: 26,
                     }}
                   >
-                    <StatCell label="총 운행거리" value={totalDistanceLabel} />
+                    <CarStatCell label="총 운행거리" value={totalDistanceLabel} />
                     <View style={{ width: 1, height: 56, backgroundColor: colors.primary[50] }} />
-                    <StatCell
+                    <CarStatCell
                       label="총 운행 적립 포인트"
                       valueNode={
                         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
