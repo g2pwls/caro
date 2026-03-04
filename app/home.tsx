@@ -7,6 +7,7 @@ import { ToggleButton, type ToggleOption, type ToggleValue } from '@/components/
 import { MainButton } from '@/components/common/Button/MainButton';
 import { HomeRecentPointsSection } from '@/components/home/sections/HomeRecentPointsSection';
 import { Toast } from '@/components/common/Toast/Toast';
+import { useHomePointsData } from '@/hooks/home/useHomePointsData';
 import { useEffect, useMemo, useState, useRef, useCallback } from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -25,7 +26,7 @@ import { useAuthStore } from '@/stores/authStore';
 import { createDrivingRecord, getTodayDrivingRecords } from '@/services/drivingRecordService';
 import type { DrivingRecord } from '@/types/drivingRecord';
 import { setPrimaryCar } from '@/services/vehicleService';
-import { fetchPointHistory, fetchPointEstimate, fetchPendingPoints, claimPoints, checkAttendance, fetchAttendanceStatus, type PointHistory } from '@/services/rewardService';
+import { fetchPointEstimate, fetchPendingPoints } from '@/services/rewardService';
 import { fetchDashboard } from '@/services/profileService';
 import { syncWidgetData, calculateProgressRatio } from '@/hooks/useWidgetSync';
 import { getSessionRoute, clearSession, getOrphanedSession } from '@/services/routePersistService';
@@ -96,12 +97,6 @@ export default function HomeScreen() {
   const [isBtModalVisible, setIsBtModalVisible] = useState(false);
   const [expandedDriveIndices, setExpandedDriveIndices] = useState<Set<number>>(new Set());
   const [todayRecords, setTodayRecords] = useState<DrivingRecord[]>([]);
-  const [pointHistories, setPointHistories] = useState<PointHistory[]>([]);
-  const [attendanceStreak, setAttendanceStreak] = useState(0);
-  const [isAttendanceChecked, setIsAttendanceChecked] = useState(false);
-  const [isAttendanceModalVisible, setIsAttendanceModalVisible] = useState(false);
-  const [attendancePoints, setAttendancePoints] = useState(0);
-  const [attendedDays, setAttendedDays] = useState<Set<number>>(new Set());
 
   // 블루투스 연결 관리
   const {
@@ -128,6 +123,22 @@ export default function HomeScreen() {
     removePairedDevice,
     setActiveDevice,
   } = useBluetoothSettingsStore();
+
+  const {
+    pointHistories,
+    attendanceStreak,
+    isAttendanceChecked,
+    isAttendanceModalVisible,
+    setIsAttendanceModalVisible,
+    attendancePoints,
+    attendedDays,
+    pendingPoints,
+    setPendingPoints,
+    isClaiming,
+    isClaimAnimating,
+    handleClaimPoints,
+    handleAttendanceCheck,
+  } = useHomePointsData({ topToggle });
 
   // 차량 목록 로드
   useEffect(() => {
@@ -214,37 +225,6 @@ export default function HomeScreen() {
     })();
   }, [accessToken]);
 
-  // 포인트 이력 및 출석 현황 조회
-  useEffect(() => {
-    if (topToggle === 1) {
-      fetchPointHistory()
-        .then((data) => {
-          setPointHistories(data.histories);
-        })
-        .catch((err) => {
-          console.warn('포인트 이력 조회 실패:', err);
-          setPointHistories([]);
-        });
-
-      fetchAttendanceStatus()
-        .then((data) => {
-          setAttendanceStreak(data.currentStreak);
-          setIsAttendanceChecked(data.isAttendedToday);
-          setAttendedDays(new Set(data.attendanceRecords.map((r) => r.dayOrder)));
-        })
-        .catch((err) => {
-          console.warn('출석 현황 조회 실패:', err);
-        });
-
-      fetchPendingPoints()
-        .then((data) => setPendingPoints(data.totalPendingPoints))
-        .catch((err) => {
-          console.warn('미수령 포인트 조회 실패:', err);
-          setPendingPoints(0);
-        });
-    }
-  }, [topToggle]);
-
   // BLE 디바이스 페어링 핸들러
   const handlePairDevice = (device: BleDevice) => {
     setAsCarDevice(device);
@@ -320,40 +300,6 @@ export default function HomeScreen() {
 
   // 예상 적립 포인트 (API 기반)
   const [estimatedPoints, setEstimatedPoints] = useState(0);
-
-  // 미수령 운행 포인트
-  const [pendingPoints, setPendingPoints] = useState(0);
-  const [isClaiming, setIsClaiming] = useState(false);
-  const [isClaimAnimating, setIsClaimAnimating] = useState(false);
-
-  // 포인트 받기
-  const handleClaimPoints = useCallback(async () => {
-    if (isClaiming || pendingPoints <= 0) return;
-    setIsClaiming(true);
-    setIsClaimAnimating(true);
-    try {
-      await claimPoints();
-      // 미수령 포인트 새로고침
-      const data = await fetchPendingPoints();
-      setPendingPoints(data.totalPendingPoints);
-      // 위젯 데이터 동기화
-      fetchDashboard().then((dashboard) => {
-        syncWidgetData({
-          totalDistanceKm: dashboard.totalDistanceKm,
-          pendingPoints: data.totalPendingPoints,
-          progressRatio: calculateProgressRatio(dashboard.totalDistanceKm),
-        });
-      }).catch(() => {});
-    } catch (err) {
-      console.warn('포인트 수령 실패:', err);
-    } finally {
-      // gif 애니메이션을 1초간 보여준 뒤 원래 아이콘으로 복귀
-      setTimeout(() => {
-        setIsClaimAnimating(false);
-      }, 1000);
-      setIsClaiming(false);
-    }
-  }, [isClaiming, pendingPoints]);
 
   // 수동 운행 시작/중지 핸들러
   const handleDrivingToggle = async () => {
@@ -1509,27 +1455,7 @@ export default function HomeScreen() {
                       accessibilityRole="button"
                       accessibilityLabel="attendance-check"
                       disabled={isAttendanceChecked}
-                      onPress={async () => {
-                        try {
-                          const result = await checkAttendance();
-                          setAttendanceStreak(result.streak);
-                          setAttendancePoints(result.points);
-                          setIsAttendanceChecked(true);
-                          setIsAttendanceModalVisible(true);
-                          // 출석 현황 새로고침
-                          fetchAttendanceStatus()
-                            .then((data) => {
-                              setAttendedDays(new Set(data.attendanceRecords.map((r) => r.dayOrder)));
-                            })
-                            .catch(() => {});
-                          // 포인트 이력 새로고침
-                          fetchPointHistory()
-                            .then((data) => setPointHistories(data.histories))
-                            .catch(() => {});
-                        } catch (err) {
-                          console.warn('출석체크 실패:', err);
-                        }
-                      }}
+                      onPress={handleAttendanceCheck}
                       style={{
                         backgroundColor: isAttendanceChecked ? colors.coolNeutral[30] : colors.primary[50],
                         borderRadius: 7,
