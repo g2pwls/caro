@@ -61,7 +61,6 @@ export default function CarScreen() {
   const openDatePicker = useCallback(() => setIsDatePickerOpen(true), []);
   const closeDatePicker = useCallback(() => setIsDatePickerOpen(false), []);
 
-
   const applyDatePicker = useCallback(() => {
     const newYearMonth = toYearMonth(pickedYear, pickedMonth);
     closeDatePicker();
@@ -312,4 +311,3 @@ export default function CarScreen() {
     </SafeAreaView>
   );
 }
-
